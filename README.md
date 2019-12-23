@@ -7,7 +7,7 @@ A simple Minecraft Launcher made in Python. Made by RealistikDash.
 Unlike my other projects, the setup for this is very easy. It only requires one command.
 - Open CMD in the diretory where you extracted the files.
 
-- Do pip install -r requirements
+- Do pip install -r requirements.txt
 
 - Run launcher.py
 
