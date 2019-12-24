@@ -33,7 +33,7 @@ def MessageBox(title, content, style = 0):
     ##  5 : Retry | No 
     ##  6 : Cancel | Try Again | Continue
 
-def Install():
+def Install(PlayAfter = False):
     """Installs minecraft"""
     #Version = "1.14.4" #later change it into a gui list
     Version = ListVariable.get()
@@ -45,7 +45,10 @@ def Install():
     else:
         MessageBox("PyMyMC Info!", "Downloading started! The program may be frozen for a few minutes. Don't touch it while it's frozen.")
         MCLib.install.install_minecraft_version(Version, Config.MinecraftDir, callback=None)
-        MessageBox("PyMyMC Info!", "Downloading Minecraft finished! You can now play!")
+        if PlayAfter:
+            Play()
+        else:
+            MessageBox("PyMyMC Info!", "Downloading Minecraft finished! You can now play!")
 
 def Play():
     """Function that is done when the play button is pressed"""
@@ -84,7 +87,7 @@ def Play():
                 subprocess.call(Command)
                 MessageBox("PyMyMC", "Thank you for using PyMyMC!")
             else:
-                MessageBox("PyMyMC", "Could not find Minecraft install! Try clicking the Download button to install Minecraft.")
+                Install(True)
 
 MainWindow = Tk()
 MainWindow.configure(background=Config.BG_Colour) # sets bg colour
