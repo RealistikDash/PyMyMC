@@ -52,7 +52,7 @@ def MessageBox(title, content, style = 0):
 
 def Install(PlayAfter = False):
     """Installs minecraft"""
-    #Version = "1.14.4" #later change it into a gui list
+    #Version = "1.14.4" #later change it into a gui list # i did
     Version = ListVariable.get()
 
     MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
@@ -72,6 +72,9 @@ def Play():
     Email = Username_Entry.get()
     Password = Password_Entry.get()
     Version = ListVariable.get()
+    RememberMe = False
+    if RememberMe_Var.get() == 1:
+        RememberMe = True
 
     #print(Username)
     #print(Config.MinecraftDir)
@@ -120,6 +123,12 @@ def Play():
                 }
                 Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
                 MainWindow.destroy()
+                if RememberMe:
+                    Config.Config["Email"] = Email
+                    Config.Config["AccessToken"] = AccessToken
+                    Config.Config["UUID"] = Uuid
+                    Config.Config["Username"] = Username
+                    JsonFile.SaveDict(Config.Config, "config.json") #saves credentials to config.json
                 subprocess.call(Command)
                 MessageBox("PyMyMC", "Thank you for using PyMyMC!")
             else:
@@ -208,7 +217,8 @@ Ver_List = OptionMenu(MainWindow, ListVariable, *McVers)
 Ver_List.grid(row=10, column=0, sticky=W)
 
 #Remember Me Checkbox
-RememberMe_Checkbox = Checkbutton(MainWindow, text="Remember me", bg=Config.BG_Colour, fg = "white")
+RememberMe_Var = IntVar() #value whether its ticked is stored here
+RememberMe_Checkbox = Checkbutton(MainWindow, text="Remember me", bg=Config.BG_Colour, fg = "black", variable=RememberMe_Var)
 RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
 MainWindow.mainloop()
