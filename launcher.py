@@ -5,11 +5,28 @@ import ctypes
 import os
 import os.path
 from os import path #not sure if necessary
+import json
+
+class JsonFile:
+    @classmethod
+    def SaveDict(self, Dict, File):
+        """Saves a dict as a file"""
+        with open(File, 'w') as json_file:
+            json.dump(Dict, json_file, indent=4)
+
+    @classmethod
+    def GetDict(self, file):
+        """Returns a dict from file name"""
+        with open(file) as f:
+            data = json.load(f)
+        return data
 
 class Config:
     #Why a class? I dont know
-    Version = "0.1.0"
-    MinecraftDir = os.getcwd() + "\\.minecraft\\"
+    Config = {} # this us loaded later on
+
+    Version = "0.1.1"
+    MinecraftDir = ""
 
     BG_Colour = '#424242'
 
@@ -61,18 +78,37 @@ def Play():
 
     if Email == "":
         MessageBox("PyMyMC Error!", "Username cannot be empty!")
-    elif Password == "":
+    elif Password == "" and Email != Config.Config["Email"]:
         MessageBox("PyMyMC Error!", "Password cannot be empty!")
     else:
-        AccountInfo = MCLib.account.login_user(Email, Password)
+        if Email != Config.Config["Email"] or Config.Config["UUID"] == "" or Config.Config["AccessToken"] == "":
+            AccountInfo = MCLib.account.login_user(Email, Password) # so it doesnt do it with the __useuuid__PyMyMC__ password
+            UsingPassword = True
+        else:
+            AccountInfo = {} #so i dont have to make 2 different checks for errors
+            UsingPassword = False
+
         if "error" in list(AccountInfo.keys()):
             MessageBox("PyMyMC Error!", AccountInfo["errorMessage"])
         else:
-            AccessToken = AccountInfo["accessToken"]
-            Username = AccountInfo["selectedProfile"]["name"]
-            Uuid = AccountInfo["selectedProfile"]["id"]
+            if UsingPassword:
+                AccessToken = AccountInfo["accessToken"]
+                Username = AccountInfo["selectedProfile"]["name"]
+                Uuid = AccountInfo["selectedProfile"]["id"]
+            else:
+                #grabs from the config
+                AccessToken = Config.Config["AccessToken"]
+                Username = Config.Config["Username"]
+                Uuid = Config.Config["UUID"]
+
+
             #RealistikDash was here
             MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
+
+            #debugging
+            print(f"Access Token: {AccessToken}")
+            print(f"UUID: {Uuid}")
+
             if MinecraftFound:
                 options = {
                     "username" : Username,
@@ -89,10 +125,31 @@ def Play():
             else:
                 Install(True)
 
+def ConfigLoad():
+    """Function to load/make new config"""
+    ExampleConfig = {
+        "IsExample" : False,
+        "MinecraftDir" : os.getcwd() + "\\.minecraft\\",
+        "Email" : "",
+        "UUID" : "", #remember kids, never store passwords
+        "AccessToken" : ""
+    }
+
+    JSONConfig = JsonFile.GetDict("config.json")
+
+    if JSONConfig["IsExample"] == True:
+        Config.Config = ExampleConfig
+    else:
+        Config.Config = JSONConfig
+
+    Config.MinecraftDir = Config.Config["MinecraftDir"]  
+
+ConfigLoad()
 MainWindow = Tk()
 MainWindow.configure(background=Config.BG_Colour) # sets bg colour
 MainWindow.title("PyMyMC") # sets window title
 MainWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
+MainWindow.resizable(False, False) #makes the window not resizable
 
 #Logo Image
 PyMyMC_Logo = PhotoImage(file="img\\pymymc_logo_small.png")
@@ -111,7 +168,9 @@ Username_Label = Label(MainWindow, text="Email:", bg = Config.BG_Colour, fg = "w
 Username_Label.grid(row=5, column=0, sticky=W)
 
 #Username Entry
-Username_Entry = Entry(MainWindow, width=40, bg = "grey", fg="white")
+US_EntryText = StringVar() #
+Username_Entry = Entry(MainWindow, width=40, bg = "grey", fg="white", textvariable=US_EntryText)
+US_EntryText.set(Config.Config["Email"]) #inserts config email here
 Username_Entry.grid(row=6, column = 0, sticky=W)
 
 #Password Label
@@ -147,5 +206,9 @@ ListVariable = StringVar(MainWindow)
 ListVariable.set(McVers[0])
 Ver_List = OptionMenu(MainWindow, ListVariable, *McVers)
 Ver_List.grid(row=10, column=0, sticky=W)
+
+#Remember Me Checkbox
+RememberMe_Checkbox = Checkbutton(MainWindow, text="Remember me", bg=Config.BG_Colour, fg = "white")
+RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
 MainWindow.mainloop()
