@@ -108,10 +108,6 @@ def Play():
             #RealistikDash was here
             MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
 
-            #debugging
-            print(f"Access Token: {AccessToken}")
-            print(f"UUID: {Uuid}")
-
             if MinecraftFound:
                 options = {
                     "username" : Username,
