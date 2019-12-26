@@ -77,9 +77,12 @@ def ConfigWindowFunc():
                 Config.Config["AccessToken"] = ""
                 Config.Config["Username"] = ""
             Config.Config["JVMRAM"] = DRAM_Str
+            if MCPath_Str[-1] != "\\":
+                MCPath_Str = MCPath_Str + "\\"
             Config.Config["MinecraftDir"] = MCPath_Str
             JsonFile.SaveDict(Config.Config, "config.json")
             ConfigLoad() #runs config update
+            ConfigWindow.destroy()
         
         
         else:
