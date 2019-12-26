@@ -1,3 +1,4 @@
+#RealistikDash here, just be careful and wear eye protection while looking at this
 from tkinter import *
 import minecraft_launcher_lib as MCLib
 import subprocess
@@ -25,7 +26,7 @@ class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.1"
+    Version = "0.1.2"
     MinecraftDir = ""
 
     BG_Colour = '#424242'
@@ -50,6 +51,89 @@ def MessageBox(title, content, style = 0):
     ##  5 : Retry | No 
     ##  6 : Cancel | Try Again | Continue
 
+def ConfigWindowFunc():
+    """Creates an advanced config window"""
+    #i know this is not supposed to be how you do it but "it just works"
+
+    def SaveConfig():
+        """This is the first time i use a def in a def""" #and im bad at making them
+        MCPath_Str = MCPath_StringVar.get()
+        DRAM_Str = DRAM_StringVar.get()
+        ForgetMe_Int = int(RememberMe_Var.get())
+
+        NotFailedDRAMCheck = True
+
+        try:
+            DRAM_Str = int(DRAM_Str)
+            if DRAM_Str <= 0:
+                NotFailedDRAMCheck = False
+        except Exception:
+            NotFailedDRAMCheck = False #nicest way i know of doing this
+
+        if NotFailedDRAMCheck:
+            if ForgetMe_Int == 1:
+                Config.Config["Email"] = ""
+                Config.Config["UUID"] = ""
+                Config.Config["AccessToken"] = ""
+                Config.Config["Username"] = ""
+            Config.Config["JVMRAM"] = DRAM_Str
+            Config.Config["MinecraftDir"] = MCPath_Str
+            JsonFile.SaveDict(Config.Config, "config.json")
+            ConfigLoad() #runs config update
+        
+        
+        else:
+            MessageBox("PyMyMC Error!", "The RAM value has to be an integer (full number) over 0.")
+
+    #Initial window settings
+    ConfigWindow = Toplevel(MainWindow)
+    ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
+    ConfigWindow.title("PyMyMC Config") # sets window title
+    ConfigWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
+    ConfigWindow.resizable(False, False) #makes the window not resizable
+
+    #WarningLabel
+    Warning_Label = Label(ConfigWindow, text="Warning! These options are for advanced users only!", bg = Config.BG_Colour, fg = "white", font = "none 12")
+    Warning2_Label = Label(ConfigWindow, text="Proceed with caution!", bg = Config.BG_Colour, fg = "yellow", font = "none 12 bold")
+    Warning_Label.grid(row=0, column=0, sticky=W)
+    Warning2_Label.grid(row=1, column=0, sticky=W)
+
+    #MC Path Label
+    MCPath_Label = Label(ConfigWindow, text="Minecraft Path:", bg = Config.BG_Colour, fg = "white", font = "none 11")
+    MCPath_Label.grid(row=2, column=0, sticky=W)
+
+    #MC Path Entry
+    MCPath_StringVar = StringVar()
+    MCPath_Entry = Entry(ConfigWindow, width=40, bg = "grey", fg="white", textvariable=MCPath_StringVar)
+    MCPath_StringVar.set(Config.Config["MinecraftDir"])
+    MCPath_Entry.grid(row=3, column=0, sticky=W)
+
+    #Dedicated RAM Label
+    DRAM_Label = Label(ConfigWindow, text="JVM Dedicated RAM:", bg = Config.BG_Colour, fg = "white", font = "none 11")
+    DRAM_Label.grid(row=4,column=0,sticky=W) 
+
+    #Dedicated RAM Entry
+    DRAM_StringVar = StringVar()
+    DRAM_Entry = Entry(ConfigWindow, width=10, bg = "grey", fg="white", textvariable=DRAM_StringVar)
+    DRAM_StringVar.set(Config.Config["JVMRAM"])
+    DRAM_Entry.grid(row=5, column=0, sticky=W)
+
+    GB_Label = Label(ConfigWindow, text="GB", bg = Config.BG_Colour, fg = "white", font = "none 9")
+    GB_Label.grid(row=5, column=0, sticky=E)
+
+    #ForgetMe RADIO
+    RememberMe_Var = IntVar() #value whether its ticked is stored here
+    RememberMe_Checkbox = Checkbutton(ConfigWindow, text="Forget Me", bg=Config.BG_Colour, fg = "black", variable=RememberMe_Var)
+    RememberMe_Checkbox.grid(row=6, column=0, sticky=W)
+    
+    #Apply Button
+    Apply_Button = Button(ConfigWindow, text="Apply", bg = "grey", fg = "white", width=10, command = SaveConfig)
+    Apply_Button.grid(row=7, column=0, sticky=W)
+
+    #Cancel Button
+    Cancel_Button = Button(ConfigWindow, text="Cancel", bg = "grey", fg = "white", width=10, command = ConfigWindow.destroy)
+    Cancel_Button.grid(row=7, column=0, sticky=E)
+
 def Install(PlayAfter = False):
     """Installs minecraft"""
     #Version = "1.14.4" #later change it into a gui list # i did
@@ -69,6 +153,7 @@ def Install(PlayAfter = False):
 
 def Play():
     """Function that is done when the play button is pressed"""
+    #Note 25/12/19 | Deal with sessions expiring
     Email = Username_Entry.get()
     Password = Password_Entry.get()
     Version = ListVariable.get()
@@ -115,7 +200,8 @@ def Play():
                     "token" : AccessToken,
 
                     "launcherName": "PyMyMC",
-                    "gameDirectory": Config.MinecraftDir
+                    "gameDirectory": Config.MinecraftDir,
+                    "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
                 }
                 Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
                 MainWindow.destroy()
@@ -137,7 +223,8 @@ def ConfigLoad():
         "MinecraftDir" : os.getcwd() + "\\.minecraft\\",
         "Email" : "",
         "UUID" : "", #remember kids, never store passwords
-        "AccessToken" : ""
+        "AccessToken" : "",
+        "JVMRAM" : 2 #in GB
     }
 
     JSONConfig = JsonFile.GetDict("config.json")
@@ -148,6 +235,11 @@ def ConfigLoad():
         Config.Config = JSONConfig
 
     Config.MinecraftDir = Config.Config["MinecraftDir"]  
+
+    if "JVMRAM" not in list(Config.Config.keys()):
+        #for reuse of older configs
+        Config.Config["JVMRAM"] = 2
+        JsonFile.SaveDict(Config.Config, "config.json")
 
 ConfigLoad()
 MainWindow = Tk()
@@ -211,6 +303,10 @@ ListVariable = StringVar(MainWindow)
 ListVariable.set(McVers[0])
 Ver_List = OptionMenu(MainWindow, ListVariable, *McVers)
 Ver_List.grid(row=10, column=0, sticky=W)
+
+#Config Button
+Config_Button = Button(MainWindow, text="Config", bg = "grey", fg = "white", width=10, command = ConfigWindowFunc)
+Config_Button.grid(row = 11, column=0)
 
 #Remember Me Checkbox
 RememberMe_Var = IntVar() #value whether its ticked is stored here
