@@ -5,6 +5,8 @@ A simple Minecraft Launcher made in Python. Made by RealistikDash.
 
 # Installation
 Unlike my other projects, the setup for this is very easy. It only requires one command.
+- Get Python 3.6 or above.
+
 - Open CMD in the diretory where you extracted the files.
 
 - Do pip install -r requirements.txt
@@ -26,10 +28,12 @@ This launcher allows you access *some* of the features the normal Minecraft laun
 
 - Very lightweight
 
+- Non Premium support
+
 Here are the features planned for the near future:
 
-- Remember me option
+- Discord rich presence
 
-- Custom version support
+- UI Overhaul
 
-- Better configuration (using JSON to save and have a nice UI to config)
+- Better non-premium UI

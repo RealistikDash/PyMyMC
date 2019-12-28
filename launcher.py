@@ -9,6 +9,7 @@ import os.path
 from os import path #not sure if necessary
 import json
 from natsort import natsorted #for version arrangement
+import hashlib # for nonpremuim uuid making
 
 class JsonFile:
     @classmethod
@@ -28,7 +29,7 @@ class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.3"
+    Version = "0.1.4"
     MinecraftDir = ""
 
     BG_Colour = '#2F3136'
@@ -82,6 +83,10 @@ def ConfigWindowFunc():
             Config.Config["JVMRAM"] = DRAM_Str
             if MCPath_Str[-1] != "\\":
                 MCPath_Str = MCPath_Str + "\\"
+            if Premium_Var.get() == 1:
+                Config.Config["Premium"] = True
+            if Premium_Var.get() == 0:
+                Config.Config["Premium"] = False
             Config.Config["MinecraftDir"] = MCPath_Str
             JsonFile.SaveDict(Config.Config, "config.json")
             ConfigLoad() #runs config update
@@ -131,14 +136,21 @@ def ConfigWindowFunc():
     RememberMe_Var = IntVar() #value whether its ticked is stored here
     RememberMe_Checkbox = ttk.Checkbutton(ConfigWindow, text="Forget Me", variable=RememberMe_Var)
     RememberMe_Checkbox.grid(row=6, column=0, sticky=W)
+
+    #Premium RADIO
+    Premium_Var = IntVar() #value whether its ticked is stored here
+    if Config.Config["Premium"]:
+        Premium_Var.set(1) #sets to whats enabled
+    Premium_Checkbox = ttk.Checkbutton(ConfigWindow, text="Use Premium Minecraft Accounts", variable=Premium_Var)
+    Premium_Checkbox.grid(row=6, column=0, sticky=W)
     
     #Apply Button
     Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=10, command = SaveConfig)
-    Apply_Button.grid(row=7, column=0, sticky=W)
+    Apply_Button.grid(row=8, column=0, sticky=W)
 
     #Cancel Button
     Cancel_Button = ttk.Button(ConfigWindow, text="Cancel", width=10, command = ConfigWindow.destroy)
-    Cancel_Button.grid(row=7, column=0, sticky=E)
+    Cancel_Button.grid(row=8, column=0, sticky=E)
 
 def Install(PlayAfter = False):
     """Installs minecraft"""
@@ -167,60 +179,86 @@ def Play():
     if RememberMe_Var.get() == 1:
         RememberMe = True
 
-    #print(Username)
-    #print(Config.MinecraftDir)
-
-    if Email == "":
-        MessageBox("PyMyMC Error!", "Username cannot be empty!")
-    elif Password == "" and Email != Config.Config["Email"]:
-        MessageBox("PyMyMC Error!", "Password cannot be empty!")
-    else:
-        if Email != Config.Config["Email"] or Config.Config["UUID"] == "" or Config.Config["AccessToken"] == "":
-            AccountInfo = MCLib.account.login_user(Email, Password) # so it doesnt do it with the __useuuid__PyMyMC__ password
-            UsingPassword = True
+    if not Config.Config["Premium"]:
+        #NonPremium code
+        if Email == "":
+            MessageBox("PyMyMC Error!", "Username cannot be empty!")
         else:
-            AccountInfo = {} #so i dont have to make 2 different checks for errors
-            UsingPassword = False
+            options = {
+                "username" : Email,
+                "uuid" : str(hashlib.md5(str.encode(Email)).digest()),
+                "token" : "",
+                "launcherName": "PyMyMC",
+                "gameDirectory": Config.MinecraftDir,
+                "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
+            }
 
-        if "error" in list(AccountInfo.keys()):
-            MessageBox("PyMyMC Error!", AccountInfo["errorMessage"])
+            if RememberMe:
+                Config.Config["Email"] = Email
+                JsonFile.SaveDict(Config.Config, "config.json")
+
+            Config.Config["LastSelected"] = Version
+            JsonFile.SaveDict(Config.Config, "config.json") #last version saving
+            
+            Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
+            MainWindow.destroy()
+            subprocess.call(Command)
+            MessageBox("PyMyMC", "Thank you for using PyMyMC!")
+
+    if Config.Config["Premium"]:
+        if Email == "":
+            MessageBox("PyMyMC Error!", "Username cannot be empty!")
+        elif Password == "" and Email != Config.Config["Email"]:
+            MessageBox("PyMyMC Error!", "Password cannot be empty!")
         else:
-            if UsingPassword:
-                AccessToken = AccountInfo["accessToken"]
-                Username = AccountInfo["selectedProfile"]["name"]
-                Uuid = AccountInfo["selectedProfile"]["id"]
+            if Email != Config.Config["Email"] or Config.Config["UUID"] == "" or Config.Config["AccessToken"] == "":
+                AccountInfo = MCLib.account.login_user(Email, Password) # so it doesnt do it with the __useuuid__PyMyMC__ password
+                UsingPassword = True
             else:
-                #grabs from the config
-                AccessToken = Config.Config["AccessToken"]
-                Username = Config.Config["Username"]
-                Uuid = Config.Config["UUID"]
+                AccountInfo = {} #so i dont have to make 2 different checks for errors
+                UsingPassword = False
 
-
-            #RealistikDash was here
-            MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
-
-            if MinecraftFound:
-                options = {
-                    "username" : Username,
-                    "uuid" : Uuid,
-                    "token" : AccessToken,
-
-                    "launcherName": "PyMyMC",
-                    "gameDirectory": Config.MinecraftDir,
-                    "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
-                }
-                Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
-                MainWindow.destroy()
-                if RememberMe:
-                    Config.Config["Email"] = Email
-                    Config.Config["AccessToken"] = AccessToken
-                    Config.Config["UUID"] = Uuid
-                    Config.Config["Username"] = Username
-                    JsonFile.SaveDict(Config.Config, "config.json") #saves credentials to config.json
-                subprocess.call(Command)
-                MessageBox("PyMyMC", "Thank you for using PyMyMC!")
+            if "error" in list(AccountInfo.keys()):
+                MessageBox("PyMyMC Error!", AccountInfo["errorMessage"])
             else:
-                Install(True)
+                if UsingPassword:
+                    AccessToken = AccountInfo["accessToken"]
+                    Username = AccountInfo["selectedProfile"]["name"]
+                    Uuid = AccountInfo["selectedProfile"]["id"]
+                else:
+                    #grabs from the config
+                    AccessToken = Config.Config["AccessToken"]
+                    Username = Config.Config["Username"]
+                    Uuid = Config.Config["UUID"]
+
+
+                #RealistikDash was here
+                MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
+
+                if MinecraftFound:
+                    options = {
+                        "username" : Username,
+                        "uuid" : Uuid,
+                        "token" : AccessToken,
+
+                        "launcherName": "PyMyMC",
+                        "gameDirectory": Config.MinecraftDir,
+                        "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
+                    }
+                    Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
+                    MainWindow.destroy()
+                    if RememberMe:
+                        Config.Config["Email"] = Email
+                        Config.Config["AccessToken"] = AccessToken
+                        Config.Config["UUID"] = Uuid
+                        Config.Config["Username"] = Username
+                        JsonFile.SaveDict(Config.Config, "config.json") #saves credentials to config.json
+                    Config.Config["LastSelected"] = Version
+                    JsonFile.SaveDict(Config.Config, "config.json") #last version saving
+                    subprocess.call(Command)
+                    MessageBox("PyMyMC", "Thank you for using PyMyMC!")
+                else:
+                    Install(True)
 
 def ConfigLoad():
     """Function to load/make new config"""
@@ -230,7 +268,9 @@ def ConfigLoad():
         "Email" : "",
         "UUID" : "", #remember kids, never store passwords
         "AccessToken" : "",
-        "JVMRAM" : 2 #in GB
+        "JVMRAM" : 2, #in GB
+        "Premium" : True,
+        "LastSelected" : "1.15.1"
     }
 
     JSONConfig = JsonFile.GetDict("config.json")
@@ -242,9 +282,18 @@ def ConfigLoad():
 
     Config.MinecraftDir = Config.Config["MinecraftDir"]  
 
+    #Making older configs compatible with newer ones
     if "JVMRAM" not in list(Config.Config.keys()):
         #for reuse of older configs
         Config.Config["JVMRAM"] = 2
+        JsonFile.SaveDict(Config.Config, "config.json")
+    
+    if "Premium" not in list(Config.Config.keys()):
+        Config.Config["Premium"] = True
+        JsonFile.SaveDict(Config.Config, "config.json")
+
+    if "LastSelected" not in list(Config.Config.keys()):
+        Config.Config["LastSelected"] = "1.15.1"
         JsonFile.SaveDict(Config.Config, "config.json")
 
 
@@ -318,9 +367,9 @@ for RealistikDash in MCVerList:
     if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
         McVers.append(RealistikDash)
 McVers = natsorted(McVers)
+McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
 
 ListVariable = StringVar(MainWindow)
-ListVariable.set(McVers[0])
 Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
 Ver_List.grid(row=10, column=0, sticky=W)
 

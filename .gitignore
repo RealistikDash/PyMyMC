@@ -132,3 +132,4 @@ dmypy.json
 .minecraft/
 logs/
 config.json
+.mixin.out/
