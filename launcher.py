@@ -1,5 +1,6 @@
 #RealistikDash here, just be careful and wear eye protection while looking at this
 from tkinter import *
+from tkinter import ttk
 import minecraft_launcher_lib as MCLib
 import subprocess
 import ctypes
@@ -27,10 +28,11 @@ class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.2"
+    Version = "0.1.3"
     MinecraftDir = ""
 
-    BG_Colour = '#424242'
+    BG_Colour = '#2F3136'
+    FG_Colour = "#2c3e50"
 
 class Data:
     Versions = { #currently not being used. for later purposes
@@ -108,7 +110,7 @@ def ConfigWindowFunc():
 
     #MC Path Entry
     MCPath_StringVar = StringVar()
-    MCPath_Entry = Entry(ConfigWindow, width=40, bg = "grey", fg="white", textvariable=MCPath_StringVar)
+    MCPath_Entry = ttk.Entry(ConfigWindow, width=40, textvariable=MCPath_StringVar)
     MCPath_StringVar.set(Config.Config["MinecraftDir"])
     MCPath_Entry.grid(row=3, column=0, sticky=W)
 
@@ -118,7 +120,7 @@ def ConfigWindowFunc():
 
     #Dedicated RAM Entry
     DRAM_StringVar = StringVar()
-    DRAM_Entry = Entry(ConfigWindow, width=10, bg = "grey", fg="white", textvariable=DRAM_StringVar)
+    DRAM_Entry = ttk.Entry(ConfigWindow, width=10, textvariable=DRAM_StringVar)
     DRAM_StringVar.set(Config.Config["JVMRAM"])
     DRAM_Entry.grid(row=5, column=0, sticky=W)
 
@@ -127,15 +129,15 @@ def ConfigWindowFunc():
 
     #ForgetMe RADIO
     RememberMe_Var = IntVar() #value whether its ticked is stored here
-    RememberMe_Checkbox = Checkbutton(ConfigWindow, text="Forget Me", bg=Config.BG_Colour, fg = "black", variable=RememberMe_Var)
+    RememberMe_Checkbox = ttk.Checkbutton(ConfigWindow, text="Forget Me", variable=RememberMe_Var)
     RememberMe_Checkbox.grid(row=6, column=0, sticky=W)
     
     #Apply Button
-    Apply_Button = Button(ConfigWindow, text="Apply", bg = "grey", fg = "white", width=10, command = SaveConfig)
+    Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=10, command = SaveConfig)
     Apply_Button.grid(row=7, column=0, sticky=W)
 
     #Cancel Button
-    Cancel_Button = Button(ConfigWindow, text="Cancel", bg = "grey", fg = "white", width=10, command = ConfigWindow.destroy)
+    Cancel_Button = ttk.Button(ConfigWindow, text="Cancel", width=10, command = ConfigWindow.destroy)
     Cancel_Button.grid(row=7, column=0, sticky=E)
 
 def Install(PlayAfter = False):
@@ -245,8 +247,16 @@ def ConfigLoad():
         Config.Config["JVMRAM"] = 2
         JsonFile.SaveDict(Config.Config, "config.json")
 
+
 ConfigLoad()
 MainWindow = Tk()
+
+#Styles
+s = ttk.Style()
+s.configure('TButton', background=Config.FG_Colour, fieldbackground=Config.FG_Colour)
+s.configure('TCheckbutton', background=Config.BG_Colour, foreground="white")
+s.configure('TEntry', fieldbackground=Config.FG_Colour)
+
 MainWindow.configure(background=Config.BG_Colour) # sets bg colour
 MainWindow.title("PyMyMC") # sets window title
 MainWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
@@ -254,12 +264,12 @@ MainWindow.resizable(False, False) #makes the window not resizable
 
 #Logo Image
 PyMyMC_Logo = PhotoImage(file="img\\pymymc_logo_small.png")
-PyMyMc_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
-PyMyMc_Logo_Label['bg'] = PyMyMc_Logo_Label.master['bg']
-PyMyMc_Logo_Label.grid(row=0, column=0) 
+PyMyMC_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
+PyMyMC_Logo_Label['bg'] = PyMyMC_Logo_Label.master['bg']
+PyMyMC_Logo_Label.grid(row=0, column=0) 
 
 #Info Label
-PInfo_Label = Label(MainWindow, text=f"PyMyMC {Config.Version}", bg=Config.BG_Colour, fg = 'white', font = "none 15 bold")
+PInfo_Label = Label(MainWindow, text=f"PyMyMC {Config.Version}", bg=Config.BG_Colour, fg = 'white', font = "Arial 15 bold")
 PInfo2_Label = Label(MainWindow, text="Made by RealistikDash", bg=Config.BG_Colour, fg = 'white', font = "none 13")
 PInfo_Label.grid(row=2, column=0, sticky=W)
 PInfo2_Label.grid(row=3, column=0, sticky=W)
@@ -270,7 +280,7 @@ Username_Label.grid(row=5, column=0, sticky=W)
 
 #Username Entry
 US_EntryText = StringVar() #
-Username_Entry = Entry(MainWindow, width=40, bg = "grey", fg="white", textvariable=US_EntryText)
+Username_Entry = ttk.Entry(MainWindow, width=40, textvariable=US_EntryText)
 US_EntryText.set(Config.Config["Email"]) #inserts config email here
 Username_Entry.grid(row=6, column = 0, sticky=W)
 
@@ -279,15 +289,15 @@ Password_Label = Label(MainWindow, text="Password:", bg = Config.BG_Colour, fg =
 Password_Label.grid(row=7, column=0, sticky=W)
 
 #Password Entry
-Password_Entry = Entry(MainWindow, width=40, bg = "grey", fg="white", show="*")
+Password_Entry = ttk.Entry(MainWindow, width=40, show="*")
 Password_Entry.grid(row=8, column = 0, sticky=W)
 
 #Play Button
-Play_Button = Button(MainWindow, text="Play!", bg = "grey", fg = "white", width=10, command = Play)
+Play_Button = ttk.Button(MainWindow, text="Play!", width=10, command = Play)
 Play_Button.grid(row = 11, column=0, sticky = W)
 
 #Install Button
-Install_Button = Button(MainWindow, text="Download!", bg = "grey", fg = "white", width=10, command = Install)
+Install_Button = ttk.Button(MainWindow, text="Download!", width=10, command = Install)
 Install_Button.grid(row = 11, column=0, sticky = E)
 
 #Version Label
@@ -311,16 +321,16 @@ McVers = natsorted(McVers)
 
 ListVariable = StringVar(MainWindow)
 ListVariable.set(McVers[0])
-Ver_List = OptionMenu(MainWindow, ListVariable, *McVers)
+Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
 Ver_List.grid(row=10, column=0, sticky=W)
 
 #Config Button
-Config_Button = Button(MainWindow, text="Config", bg = "grey", fg = "white", width=10, command = ConfigWindowFunc)
+Config_Button = ttk.Button(MainWindow, text="Config",  width=10, command = ConfigWindowFunc)
 Config_Button.grid(row = 11, column=0)
 
 #Remember Me Checkbox
 RememberMe_Var = IntVar() #value whether its ticked is stored here
-RememberMe_Checkbox = Checkbutton(MainWindow, text="Remember me", bg=Config.BG_Colour, fg = "black", variable=RememberMe_Var)
+RememberMe_Checkbox = ttk.Checkbutton(MainWindow, text="Remember me", variable=RememberMe_Var)
 RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
 MainWindow.mainloop()
