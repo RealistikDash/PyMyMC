@@ -7,6 +7,7 @@ import os
 import os.path
 from os import path #not sure if necessary
 import json
+from natsort import natsorted #for version arrangement
 
 class JsonFile:
     @classmethod
@@ -297,10 +298,16 @@ Password_Label.grid(row=9, column=0, sticky=W)
 MCVerList = MCLib.utils.get_version_list()
 McVers = []
 
+# Code for searching for existing versions
+VersionList = os.listdir(Config.MinecraftDir+"versions\\")
+for Realistik in VersionList:
+    McVers.append(Realistik)
+
 for RealistikDash in MCVerList:
     RealistikDash = RealistikDash["id"]
-    if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash: #gets rid of snapshots and pre-releases
+    if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
         McVers.append(RealistikDash)
+McVers = natsorted(McVers)
 
 ListVariable = StringVar(MainWindow)
 ListVariable.set(McVers[0])
