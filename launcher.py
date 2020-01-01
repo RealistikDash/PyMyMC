@@ -10,6 +10,8 @@ from os import path #not sure if necessary
 import json
 from natsort import natsorted #for version arrangement
 import hashlib # for nonpremuim uuid making
+import requests
+from threading import Thread
 
 class JsonFile:
     @classmethod
@@ -29,11 +31,13 @@ class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.4"
+    Version = "0.1.5"
     MinecraftDir = ""
 
     BG_Colour = '#2F3136'
     FG_Colour = "#2c3e50"
+
+    HasInternet = True
 
 class Data:
     Versions = { #currently not being used. for later purposes
@@ -42,9 +46,11 @@ class Data:
 
 def MessageBox(title, content, style = 0):
     """Creates a Windows message box"""
+    Update()
     #title = title.encode('utf-8') #apparently not needed
     #content = content.encode('utf-8') #apparently not needed
-    ctypes.windll.user32.MessageBoxW(0, content, title, style)
+    MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
+    MsgThread.start() #non blocking?
 
     ##  Styles:
     ##  0 : OK
@@ -58,9 +64,10 @@ def MessageBox(title, content, style = 0):
 def ConfigWindowFunc():
     """Creates an advanced config window"""
     #i know this is not supposed to be how you do it but "it just works"
-
+    Update()
     def SaveConfig():
         """This is the first time i use a def in a def""" #and im bad at making them
+        Update()
         MCPath_Str = MCPath_StringVar.get()
         DRAM_Str = DRAM_StringVar.get()
         ForgetMe_Int = int(RememberMe_Var.get())
@@ -155,23 +162,35 @@ def ConfigWindowFunc():
 def Install(PlayAfter = False):
     """Installs minecraft"""
     #Version = "1.14.4" #later change it into a gui list # i did
+    Update()
     Version = ListVariable.get()
 
     MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
     if MinecraftFound:
         MessageBox("PyMyMC Info!", "This version is already installed! Press play to play it!")
 
+    elif not Config.HasInternet:
+        MessageBox("PyMyMC Error!", "An internet connection is required for this action!")
+
     else:
-        MessageBox("PyMyMC Info!", "Downloading started! The program may be frozen for a few minutes. Don't touch it while it's frozen.")
-        MCLib.install.install_minecraft_version(Version, Config.MinecraftDir, callback=None)
+        MessageBox("PyMyMC Info!", "Downloading started! If you pressed play to download, the program will freeze.")
+        callback = {
+            "setStatus": SetStatusHandler,
+            "setProgress" : SetProgressHandler,
+            "setMax": SetMaxHandler,
+        }
+        #MCLib.install.install_minecraft_version(Version, Config.MinecraftDir, callback=callback)
+        DlThread = Thread(target=MCLib.install.install_minecraft_version, args=(Version, Config.MinecraftDir,), kwargs={"callback" : callback})
+        DlThread.start()
         if PlayAfter:
+            DlThread.join()
             Play()
-        else:
-            MessageBox("PyMyMC Info!", "Downloading Minecraft finished! You can now play!")
 
 def Play():
     """Function that is done when the play button is pressed"""
     #Note 25/12/19 | Deal with sessions expiring
+    
+    Update()
     Email = Username_Entry.get()
     Password = Password_Entry.get()
     Version = ListVariable.get()
@@ -179,11 +198,15 @@ def Play():
     if RememberMe_Var.get() == 1:
         RememberMe = True
 
-    if not Config.Config["Premium"]:
+    if not Config.Config["Premium"] or not Config.HasInternet:
         #NonPremium code
         if Email == "":
             MessageBox("PyMyMC Error!", "Username cannot be empty!")
         else:
+            if Config.Config["Premium"]:
+                #code for getting a username rather than email
+                TempName = Email.split("@")
+                Email = TempName[0]
             options = {
                 "username" : Email,
                 "uuid" : str(hashlib.md5(str.encode(Email)).digest()),
@@ -202,10 +225,11 @@ def Play():
             
             Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
             MainWindow.destroy()
+            
             subprocess.call(Command)
             MessageBox("PyMyMC", "Thank you for using PyMyMC!")
 
-    if Config.Config["Premium"]:
+    if Config.Config["Premium"] and Config.HasInternet:
         if Email == "":
             MessageBox("PyMyMC Error!", "Username cannot be empty!")
         elif Password == "" and Email != Config.Config["Email"]:
@@ -296,90 +320,131 @@ def ConfigLoad():
         Config.Config["LastSelected"] = "1.15.1"
         JsonFile.SaveDict(Config.Config, "config.json")
 
+def InternetStatus():
+    """Checks for a working internet connection"""
+    TestURL = "http://google.co.uk/"
+    try:
+        requests.get(TestURL, timeout=5)
+        return True
+    except requests.ConnectionError:
+        return False
 
+def ExitHandler():
+    """Function ran on the closing of the tk mainwindow"""
+    MainWindow.destroy()
+    exit()
+
+def SetStatusHandler(status):
+    Download_Progress["value"] = 0
+    print(status)
+
+def SetProgressHandler(status):
+    Download_Progress["value"] = int(status)
+    
+
+def SetMaxHandler(status):
+    Download_Progress["maximum"] = int(status)
+
+def Update():
+    """Function ran on every part of the code to make sure everything is right"""
+    Config.HasInternet = InternetStatus()
+
+#Initialising
 ConfigLoad()
 MainWindow = Tk()
+if __name__ == '__main__':
+    Update()
+    #Styles
+    s = ttk.Style()
+    s.configure('TButton', background=Config.FG_Colour, fieldbackground=Config.FG_Colour)
+    s.configure('TCheckbutton', background=Config.BG_Colour, foreground="white")
+    s.configure('TEntry', fieldbackground=Config.FG_Colour)
 
-#Styles
-s = ttk.Style()
-s.configure('TButton', background=Config.FG_Colour, fieldbackground=Config.FG_Colour)
-s.configure('TCheckbutton', background=Config.BG_Colour, foreground="white")
-s.configure('TEntry', fieldbackground=Config.FG_Colour)
+    MainWindow.configure(background=Config.BG_Colour) # sets bg colour
+    MainWindow.title("PyMyMC") # sets window title
+    MainWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
+    MainWindow.resizable(False, False) #makes the window not resizable
+    MainWindow.protocol("WM_DELETE_WINDOW", ExitHandler) #runs the function when the user presses the X button
 
-MainWindow.configure(background=Config.BG_Colour) # sets bg colour
-MainWindow.title("PyMyMC") # sets window title
-MainWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
-MainWindow.resizable(False, False) #makes the window not resizable
+    #Logo Image
+    PyMyMC_Logo = PhotoImage(file="img\\pymymc_logo_small.png")
+    PyMyMC_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
+    PyMyMC_Logo_Label['bg'] = PyMyMC_Logo_Label.master['bg']
+    PyMyMC_Logo_Label.grid(row=0, column=0) 
 
-#Logo Image
-PyMyMC_Logo = PhotoImage(file="img\\pymymc_logo_small.png")
-PyMyMC_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
-PyMyMC_Logo_Label['bg'] = PyMyMC_Logo_Label.master['bg']
-PyMyMC_Logo_Label.grid(row=0, column=0) 
+    #Info Label
+    PInfo_Label = Label(MainWindow, text=f"PyMyMC {Config.Version}", bg=Config.BG_Colour, fg = 'white', font = "Arial 15 bold")
+    PInfo2_Label = Label(MainWindow, text="Made by RealistikDash", bg=Config.BG_Colour, fg = 'white', font = "none 13")
+    PInfo_Label.grid(row=2, column=0, sticky=W)
+    PInfo2_Label.grid(row=3, column=0, sticky=W)
 
-#Info Label
-PInfo_Label = Label(MainWindow, text=f"PyMyMC {Config.Version}", bg=Config.BG_Colour, fg = 'white', font = "Arial 15 bold")
-PInfo2_Label = Label(MainWindow, text="Made by RealistikDash", bg=Config.BG_Colour, fg = 'white', font = "none 13")
-PInfo_Label.grid(row=2, column=0, sticky=W)
-PInfo2_Label.grid(row=3, column=0, sticky=W)
+    #Username Label
+    Username_Label = Label(MainWindow, text="Email:", bg = Config.BG_Colour, fg = "white", font = "none 12")
+    if not Config.Config["Premium"]:
+        Username_Label["text"] = "Username:"
+    Username_Label.grid(row=5, column=0, sticky=W)
 
-#Username Label
-Username_Label = Label(MainWindow, text="Email:", bg = Config.BG_Colour, fg = "white", font = "none 12")
-Username_Label.grid(row=5, column=0, sticky=W)
+    #Username Entry
+    US_EntryText = StringVar() #
+    Username_Entry = ttk.Entry(MainWindow, width=40, textvariable=US_EntryText)
+    US_EntryText.set(Config.Config["Email"]) #inserts config email here
+    Username_Entry.grid(row=6, column = 0, sticky=W)
 
-#Username Entry
-US_EntryText = StringVar() #
-Username_Entry = ttk.Entry(MainWindow, width=40, textvariable=US_EntryText)
-US_EntryText.set(Config.Config["Email"]) #inserts config email here
-Username_Entry.grid(row=6, column = 0, sticky=W)
+    #Password Label
+    Password_Label = Label(MainWindow, text="Password:", bg = Config.BG_Colour, fg = "white", font = "none 12")
+    Password_Label.grid(row=7, column=0, sticky=W)
 
-#Password Label
-Password_Label = Label(MainWindow, text="Password:", bg = Config.BG_Colour, fg = "white", font = "none 12")
-Password_Label.grid(row=7, column=0, sticky=W)
+    #Password Entry
+    Password_Entry = ttk.Entry(MainWindow, width=40, show="*")
+    Password_Entry.grid(row=8, column = 0, sticky=W)
 
-#Password Entry
-Password_Entry = ttk.Entry(MainWindow, width=40, show="*")
-Password_Entry.grid(row=8, column = 0, sticky=W)
+    #Play Button
+    Play_Button = ttk.Button(MainWindow, text="Play!", width=10, command = Play)
+    Play_Button.grid(row = 11, column=0, sticky = W)
 
-#Play Button
-Play_Button = ttk.Button(MainWindow, text="Play!", width=10, command = Play)
-Play_Button.grid(row = 11, column=0, sticky = W)
+    #Install Button
+    Install_Button = ttk.Button(MainWindow, text="Download!", width=10, command = Install)
+    Install_Button.grid(row = 11, column=0, sticky = E)
 
-#Install Button
-Install_Button = ttk.Button(MainWindow, text="Download!", width=10, command = Install)
-Install_Button.grid(row = 11, column=0, sticky = E)
+    #Version Label
+    Password_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
+    Password_Label.grid(row=9, column=0, sticky=W)
 
-#Version Label
-Password_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
-Password_Label.grid(row=9, column=0, sticky=W)
+    #Version list
+    try:
+        #So the launcher still works if internet not here
+        MCVerList = MCLib.utils.get_version_list()
+    except Exception:
+        MCVerList = []
+    McVers = []
 
-#Version list
-MCVerList = MCLib.utils.get_version_list()
-McVers = []
+    # Code for searching for existing versions
+    VersionList = os.listdir(Config.MinecraftDir+"versions\\")
+    for Realistik in VersionList:
+        McVers.append(Realistik)
 
-# Code for searching for existing versions
-VersionList = os.listdir(Config.MinecraftDir+"versions\\")
-for Realistik in VersionList:
-    McVers.append(Realistik)
+    for RealistikDash in MCVerList:
+        RealistikDash = RealistikDash["id"]
+        if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
+            McVers.append(RealistikDash)
+    McVers = natsorted(McVers)
+    McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
 
-for RealistikDash in MCVerList:
-    RealistikDash = RealistikDash["id"]
-    if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
-        McVers.append(RealistikDash)
-McVers = natsorted(McVers)
-McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
+    ListVariable = StringVar(MainWindow)
+    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+    Ver_List.grid(row=10, column=0, sticky=W)
 
-ListVariable = StringVar(MainWindow)
-Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
-Ver_List.grid(row=10, column=0, sticky=W)
+    #Config Button
+    Config_Button = ttk.Button(MainWindow, text="Config",  width=10, command = ConfigWindowFunc)
+    Config_Button.grid(row = 11, column=0)
 
-#Config Button
-Config_Button = ttk.Button(MainWindow, text="Config",  width=10, command = ConfigWindowFunc)
-Config_Button.grid(row = 11, column=0)
+    #Remember Me Checkbox
+    RememberMe_Var = IntVar() #value whether its ticked is stored here
+    RememberMe_Checkbox = ttk.Checkbutton(MainWindow, text="Remember me", variable=RememberMe_Var)
+    RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
-#Remember Me Checkbox
-RememberMe_Var = IntVar() #value whether its ticked is stored here
-RememberMe_Checkbox = ttk.Checkbutton(MainWindow, text="Remember me", variable=RememberMe_Var)
-RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
+    #Download Progress Bar
+    Download_Progress = ttk.Progressbar(MainWindow, length=245)
+    Download_Progress.grid(row=12, column=0)
 
-MainWindow.mainloop()
+    MainWindow.mainloop()
