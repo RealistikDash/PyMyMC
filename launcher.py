@@ -13,6 +13,17 @@ import hashlib # for nonpremuim uuid making
 import requests
 from threading import Thread
 
+Art = """ _____       __  __       __  __  _____ 
+ |  __ \     |  \/  |     |  \/  |/ ____|
+ | |__) |   _| \  / |_   _| \  / | |     
+ |  ___/ | | | |\/| | | | | |\/| | |     
+ | |   | |_| | |  | | |_| | |  | | |____ 
+ |_|    \__, |_|  |_|\__, |_|  |_|\_____|
+         __/ |        __/ |              
+        |___/        |___/   by RealistikDash
+"""
+print(Art)
+
 class JsonFile:
     @classmethod
     def SaveDict(self, Dict, File):
@@ -23,15 +34,18 @@ class JsonFile:
     @classmethod
     def GetDict(self, file):
         """Returns a dict from file name"""
-        with open(file) as f:
-            data = json.load(f)
-        return data
+        if not path.exists(file):
+            return {}
+        else:
+            with open(file) as f:
+                data = json.load(f)
+            return data
 
 class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.5"
+    Version = "0.1.6"
     MinecraftDir = ""
 
     BG_Colour = '#2F3136'
@@ -288,7 +302,7 @@ def ConfigLoad():
     """Function to load/make new config"""
     ExampleConfig = {
         "IsExample" : False,
-        "MinecraftDir" : os.getcwd() + "\\.minecraft\\",
+        "MinecraftDir" : os.getenv('APPDATA') + "\\.minecraft\\",
         "Email" : "",
         "UUID" : "", #remember kids, never store passwords
         "AccessToken" : "",
@@ -298,6 +312,9 @@ def ConfigLoad():
     }
 
     JSONConfig = JsonFile.GetDict("config.json")
+    if JSONConfig == {}:
+        JSONConfig = ExampleConfig
+        JsonFile.SaveDict(JSONConfig, "config.json")
 
     if JSONConfig["IsExample"] == True:
         Config.Config = ExampleConfig
@@ -419,9 +436,10 @@ if __name__ == '__main__':
     McVers = []
 
     # Code for searching for existing versions
-    VersionList = os.listdir(Config.MinecraftDir+"versions\\")
-    for Realistik in VersionList:
-        McVers.append(Realistik)
+    if path.exists(Config.MinecraftDir+"versions\\"):
+        VersionList = os.listdir(Config.MinecraftDir+"versions\\")
+        for Realistik in VersionList:
+            McVers.append(Realistik)
 
     for RealistikDash in MCVerList:
         RealistikDash = RealistikDash["id"]
