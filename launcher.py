@@ -163,7 +163,7 @@ def ConfigWindowFunc():
     if Config.Config["Premium"]:
         Premium_Var.set(1) #sets to whats enabled
     Premium_Checkbox = ttk.Checkbutton(ConfigWindow, text="Use Premium Minecraft Accounts", variable=Premium_Var)
-    Premium_Checkbox.grid(row=6, column=0, sticky=W)
+    Premium_Checkbox.grid(row=7, column=0, sticky=W)
     
     #Apply Button
     Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=10, command = SaveConfig)
