@@ -12,6 +12,7 @@ import hashlib # for nonpremuim uuid making
 import requests
 from threading import Thread
 import platform #for os compatibillity
+import pathlib #for getting home folder
 
 Art = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -52,6 +53,7 @@ class Config:
     FG_Colour = "#2c3e50"
 
     HasInternet = True
+    ShowHistorical = False
 
 class Data:
     Versions = { #currently not being used. for later purposes
@@ -303,9 +305,14 @@ def Play():
 
 def ConfigLoad():
     """Function to load/make new config"""
+    if platform.system() == "Windows":
+        MCDir = os.getenv('APPDATA') + "\\.minecraft\\"
+    else:
+        #I dont know if this will work with macs or not
+        MCDir = str(pathlib.Path.home()) + "/.minecraft/"
     ExampleConfig = {
         "IsExample" : False,
-        "MinecraftDir" : os.getenv('APPDATA') + "\\.minecraft\\",
+        "MinecraftDir" : MCDir,
         "Email" : "",
         "UUID" : "", #remember kids, never store passwords
         "AccessToken" : "",
@@ -368,6 +375,19 @@ def SetMaxHandler(status):
 def Update():
     """Function ran on every part of the code to make sure everything is right"""
     Config.HasInternet = InternetStatus()
+
+def GetReleases():
+    """Returns a list of all full mc releases"""
+    Releases = []
+    Lista = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
+    VersionsA = Lista["versions"]
+    print(VersionsA)
+    for key in VersionsA:
+        print("b")
+        if key["type"] == "release":
+            print("c")
+            Releases.append(key)
+    return Releases
 
 #Initialising
 ConfigLoad()
@@ -433,7 +453,10 @@ if __name__ == '__main__':
     #Version list
     try:
         #So the launcher still works if internet not here
-        MCVerList = MCLib.utils.get_version_list()
+        if Config.ShowHistorical:
+            MCVerList = MCLib.utils.get_version_list()
+        else:
+            MCVerList = GetReleases()
     except Exception:
         MCVerList = []
     McVers = []
@@ -447,8 +470,13 @@ if __name__ == '__main__':
     for RealistikDash in MCVerList:
         RealistikDash = RealistikDash["id"]
         if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
-            McVers.append(RealistikDash)
+            if not Config.ShowHistorical and RealistikDash[0] == "b":
+                pass
+            else:
+                McVers.append(RealistikDash)
+
     McVers = natsorted(McVers)
+    McVers.reverse()
     McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
 
     ListVariable = StringVar(MainWindow)
