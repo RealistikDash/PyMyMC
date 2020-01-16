@@ -3,7 +3,6 @@ from tkinter import *
 from tkinter import ttk, messagebox
 import minecraft_launcher_lib as MCLib
 import subprocess
-import ctypes
 import os
 import os.path
 from os import path #not sure if necessary
@@ -245,7 +244,7 @@ def Play():
             MainWindow.destroy()
             
             subprocess.call(Command)
-            MessageBox("PyMyMC", "Thank you for using PyMyMC!")
+            #MessageBox("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
 
     if Config.Config["Premium"] and Config.HasInternet:
         if Email == "":
@@ -343,7 +342,7 @@ def ConfigLoad():
 
 def InternetStatus():
     """Checks for a working internet connection"""
-    TestURL = "http://google.co.uk/"
+    TestURL = "http://minecraft.net/"
     try:
         requests.get(TestURL, timeout=5)
         return True

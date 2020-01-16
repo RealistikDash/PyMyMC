@@ -1,7 +1,7 @@
 # PyMyMC
 A simple Minecraft Launcher made in Python. Made by RealistikDash.
 
-![UI Show](https://i.ussr.online/5e07ad117f0033.45577350-PyMyMC3.png)
+![UI Show](https://im.ussr.online/5e20e7b9007d78.34281440-AHAHAHAHAAH.jpg)
 
 # Installation
 Unlike my other projects, the setup for this is very easy. It only requires one command.
