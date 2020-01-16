@@ -453,6 +453,7 @@ if __name__ == '__main__':
 
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+    Ver_List.configure(width=15) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
     #Config Button
