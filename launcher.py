@@ -1,6 +1,6 @@
 #RealistikDash here, just be careful and wear eye protection while looking at this
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import minecraft_launcher_lib as MCLib
 import subprocess
 import ctypes
@@ -12,6 +12,7 @@ from natsort import natsorted #for version arrangement
 import hashlib # for nonpremuim uuid making
 import requests
 from threading import Thread
+import platform #for os compatibillity
 
 Art = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -45,7 +46,7 @@ class Config:
     #Why a class? I dont know
     Config = {} # this us loaded later on
 
-    Version = "0.1.6"
+    Version = "0.1.7MC"
     MinecraftDir = ""
 
     BG_Colour = '#2F3136'
@@ -58,22 +59,25 @@ class Data:
         "1.14.4" : "http://dl.ussr.pl/example.zip"
     }
 
-def MessageBox(title, content, style = 0):
-    """Creates a Windows message box"""
-    Update()
-    #title = title.encode('utf-8') #apparently not needed
-    #content = content.encode('utf-8') #apparently not needed
-    MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
-    MsgThread.start() #non blocking?
+class Path:
+    #class to store file paths, made for easy and quick changes
+    Logo_Small = "img\\pymymc_logo_small.png"
+    Logo_Icon = "img\\pymymc_ico.ico"
 
-    ##  Styles:
-    ##  0 : OK
-    ##  1 : OK | Cancel
-    ##  2 : Abort | Retry | Ignore
-    ##  3 : Yes | No | Cancel
-    ##  4 : Yes | No
-    ##  5 : Retry | No 
-    ##  6 : Cancel | Try Again | Continue
+def MessageBox(title, content):
+    """Creates a message box"""
+    Update()
+    #MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
+    #MsgThread.start() #non blocking?
+    messagebox.showinfo(title, content) #tkinter multiplatform messagebox rather than the windows one
+
+def ErrorBox(title, content):
+    """Creates an error dialogue box"""
+    messagebox.showerror(title, content)
+
+def WarningBox(title, content):
+    """Creater a warning dialogue box"""
+    messagebox.showwarning(title, content)
 
 def ConfigWindowFunc():
     """Creates an advanced config window"""
@@ -115,13 +119,13 @@ def ConfigWindowFunc():
         
         
         else:
-            MessageBox("PyMyMC Error!", "The RAM value has to be an integer (full number) over 0.")
+            ErrorBox("PyMyMC Error!", "The RAM value has to be an integer (full number) over 0.")
 
     #Initial window settings
     ConfigWindow = Toplevel(MainWindow)
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
     ConfigWindow.title("PyMyMC Config") # sets window title
-    ConfigWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
+    ConfigWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     ConfigWindow.resizable(False, False) #makes the window not resizable
 
     #WarningLabel
@@ -184,7 +188,7 @@ def Install(PlayAfter = False):
         MessageBox("PyMyMC Info!", "This version is already installed! Press play to play it!")
 
     elif not Config.HasInternet:
-        MessageBox("PyMyMC Error!", "An internet connection is required for this action!")
+        ErrorBox("PyMyMC Error!", "An internet connection is required for this action!")
 
     else:
         MessageBox("PyMyMC Info!", "Downloading started! If you pressed play to download, the program will freeze.")
@@ -215,7 +219,7 @@ def Play():
     if not Config.Config["Premium"] or not Config.HasInternet:
         #NonPremium code
         if Email == "":
-            MessageBox("PyMyMC Error!", "Username cannot be empty!")
+            WarningBox("PyMyMC Error!", "Username cannot be empty!")
         else:
             if Config.Config["Premium"]:
                 #code for getting a username rather than email
@@ -245,9 +249,9 @@ def Play():
 
     if Config.Config["Premium"] and Config.HasInternet:
         if Email == "":
-            MessageBox("PyMyMC Error!", "Username cannot be empty!")
+            ErrorBox("PyMyMC Error!", "Username cannot be empty!")
         elif Password == "" and Email != Config.Config["Email"]:
-            MessageBox("PyMyMC Error!", "Password cannot be empty!")
+            ErrorBox("PyMyMC Error!", "Password cannot be empty!")
         else:
             if Email != Config.Config["Email"] or Config.Config["UUID"] == "" or Config.Config["AccessToken"] == "":
                 AccountInfo = MCLib.account.login_user(Email, Password) # so it doesnt do it with the __useuuid__PyMyMC__ password
@@ -257,7 +261,7 @@ def Play():
                 UsingPassword = False
 
             if "error" in list(AccountInfo.keys()):
-                MessageBox("PyMyMC Error!", AccountInfo["errorMessage"])
+                ErrorBox("PyMyMC Error!", AccountInfo["errorMessage"])
             else:
                 if UsingPassword:
                     AccessToken = AccountInfo["accessToken"]
@@ -379,12 +383,12 @@ if __name__ == '__main__':
 
     MainWindow.configure(background=Config.BG_Colour) # sets bg colour
     MainWindow.title("PyMyMC") # sets window title
-    MainWindow.iconbitmap("img\\pymymc_ico.ico") # sets window icon
+    MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     MainWindow.resizable(False, False) #makes the window not resizable
     MainWindow.protocol("WM_DELETE_WINDOW", ExitHandler) #runs the function when the user presses the X button
 
     #Logo Image
-    PyMyMC_Logo = PhotoImage(file="img\\pymymc_logo_small.png")
+    PyMyMC_Logo = PhotoImage(file=Path.Logo_Small)
     PyMyMC_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
     PyMyMC_Logo_Label['bg'] = PyMyMC_Logo_Label.master['bg']
     PyMyMC_Logo_Label.grid(row=0, column=0) 

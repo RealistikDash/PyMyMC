@@ -37,3 +37,8 @@ Here are the features planned for the near future:
 - UI Overhaul
 
 - Better non-premium UI
+
+# Key
+Sometimes you will see certain letter combos that were created by me. Here is what they mean:
+
+- MC (in version numbers) means that is not the full, finalised version. Further commits will come to finish and fix things.
