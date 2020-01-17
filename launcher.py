@@ -381,11 +381,8 @@ def GetReleases():
     Releases = []
     Lista = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
     VersionsA = Lista["versions"]
-    print(VersionsA)
     for key in VersionsA:
-        print("b")
         if key["type"] == "release":
-            print("c")
             Releases.append(key)
     return Releases
 
