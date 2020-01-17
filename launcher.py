@@ -54,6 +54,7 @@ class Config:
 
     HasInternet = True
     ShowHistorical = False
+    HideConsole = True #Hides the console (Windows only!)
 
 class Data:
     Versions = { #currently not being used. for later purposes
@@ -117,6 +118,7 @@ def ConfigWindowFunc():
             JsonFile.SaveDict(Config.Config, "config.json")
             ConfigLoad() #runs config update
             ConfigWindow.destroy()
+            MainWindow.update()
         
         
         else:
@@ -299,7 +301,7 @@ def Play():
                     Config.Config["LastSelected"] = Version
                     JsonFile.SaveDict(Config.Config, "config.json") #last version saving
                     subprocess.call(Command)
-                    MessageBox("PyMyMC", "Thank you for using PyMyMC!")
+                    #MessageBox("PyMyMC", "Thank you for using PyMyMC!")
                 else:
                     Install(True)
 
@@ -318,7 +320,8 @@ def ConfigLoad():
         "AccessToken" : "",
         "JVMRAM" : 2, #in GB
         "Premium" : True,
-        "LastSelected" : "1.15.1"
+        "LastSelected" : "1.15.1",
+        "OnlyReleases" : True,
     }
 
     JSONConfig = JsonFile.GetDict("config.json")
@@ -346,6 +349,17 @@ def ConfigLoad():
     if "LastSelected" not in list(Config.Config.keys()):
         Config.Config["LastSelected"] = "1.15.1"
         JsonFile.SaveDict(Config.Config, "config.json")
+    
+    if "OnlyReleases" not in list(Config.Config.keys()):
+        Config.Config["OnlyReleases"] = True
+        JsonFile.SaveDict(Config.Config, "config.json")
+        Config.ShowHistorical = False
+
+    #Only Releases Fixes. Not cleanest way of doing it but gets the job done
+    if Config.Config["OnlyReleases"]:
+        Config.ShowHistorical = False
+    else:
+        Config.ShowHistorical = True
 
 def InternetStatus():
     """Checks for a working internet connection"""
