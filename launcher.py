@@ -112,8 +112,13 @@ def ConfigWindowFunc():
                 Config.Config["AccessToken"] = ""
                 Config.Config["Username"] = ""
             Config.Config["JVMRAM"] = DRAM_Str
-            if MCPath_Str[-1] != "\\":
-                MCPath_Str = MCPath_Str + "\\"
+            if platform.system() == "Windows":
+                if MCPath_Str[-1] != "\\":
+                    MCPath_Str = MCPath_Str + "\\"
+            else:
+                #other systems use / instead of \
+                if MCPath_Str[-1] != "/":
+                    MCPath_Str = MCPath_Str + "/"
             if Premium_Var.get() == 1:
                 Config.Config["Premium"] = True
             if Premium_Var.get() == 0:
