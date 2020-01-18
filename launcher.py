@@ -63,8 +63,12 @@ class Data:
 
 class Path:
     #class to store file paths, made for easy and quick changes
-    Logo_Small = "img\\pymymc_logo_small.png"
-    Logo_Icon = "img\\pymymc_ico.ico"
+    if platform.system() == "Windows":
+        Logo_Small = "img\\pymymc_logo_small.png"
+        Logo_Icon = "img\\pymymc_ico.ico"
+    else:
+        Logo_Small = "img/pymymc_logo_small.png"
+        Logo_Icon = "img/pymymc_logo_small.png"
 
 def MessageBox(title, content):
     """Creates a message box"""
@@ -128,7 +132,9 @@ def ConfigWindowFunc():
     ConfigWindow = Toplevel(MainWindow)
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
     ConfigWindow.title("PyMyMC Config") # sets window title
-    ConfigWindow.iconbitmap(Path.Logo_Icon) # sets window icon
+    if platform.system() == "Windows":
+        #other systems dont use ico
+        MainWindow.iconbitmap(PhotoImage(file=Path.Logo_Icon)) # sets window icon
     ConfigWindow.resizable(False, False) #makes the window not resizable
 
     #WarningLabel
@@ -413,7 +419,9 @@ if __name__ == '__main__':
 
     MainWindow.configure(background=Config.BG_Colour) # sets bg colour
     MainWindow.title("PyMyMC") # sets window title
-    MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
+    if platform.system() == "Windows":
+        #other systems dont use ico
+        MainWindow.iconbitmap(PhotoImage(file=Path.Logo_Icon)) # sets window icon
     MainWindow.resizable(False, False) #makes the window not resizable
     MainWindow.protocol("WM_DELETE_WINDOW", ExitHandler) #runs the function when the user presses the X button
 
