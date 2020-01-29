@@ -43,7 +43,16 @@ class Config:
     HasInternet = True
     ShowHistorical = False
 
-    FakeLinux = False #If set to true, the System ver will be set to "Linux" to help test things
+    #More advanced options
+    # If set to true, the System ver will be set to "Linux" to help test things. That variable is used by PyMyMC
+    # to check what OS the user is using (eg Windows, Linux, MacOS/Darwin)
+    FakeLinux = False 
+    # Leave blank for no proxy. This will route all the requests from PyMyMC (not its modules) via the provided proxy.
+    # The proxy must support being invoked directly and must support JSON. The main purpose of this is to bypass any
+    # blocks of the Mojang and Minecraft webste (which I need for my primary use of this lanucher). Using a slow
+    # proxy can slow down this program so i recommend not using one unless completely necessary. Setting this proxy
+    # incorrectly can cause the launcher to have connection problems and for now there is no check for it.
+    Proxy = "" 
     if FakeLinux:
         #done in the class so the later on code isnt broken
         System = "Linux"
@@ -150,6 +159,10 @@ def ConfigWindowFunc():
                 Config.Config["Premium"] = True
             if Premium_Var.get() == 0:
                 Config.Config["Premium"] = False
+            if Historical_Var.get() == 0:
+                Config.Config["OnlyReleases"] = True
+            if Historical_Var.get() == 1:
+                Config.Config["OnlyReleases"] = False
             Config.Config["MinecraftDir"] = MCPath_Str
             JsonFile.SaveDict(Config.Config, "config.json")
             ConfigLoad() #runs config update
@@ -209,14 +222,21 @@ def ConfigWindowFunc():
         Premium_Var.set(1) #sets to whats enabled
     Premium_Checkbox = ttk.Checkbutton(ConfigWindow, text="Use Premium Minecraft Accounts", variable=Premium_Var)
     Premium_Checkbox.grid(row=7, column=0, sticky=W)
+
+    #Show Historical
+    Historical_Var = IntVar()
+    if not Config.Config["OnlyReleases"]:
+        Historical_Var.set(1)
+    Historical_Checkbox = ttk.Checkbutton(ConfigWindow, text="Show non-release versions", variable=Historical_Var)
+    Historical_Checkbox.grid(row=8, column=0, sticky=W)
     
     #Apply Button
     Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=Config.BoxWidth, command = SaveConfig)
-    Apply_Button.grid(row=8, column=0, sticky=W)
+    Apply_Button.grid(row=9, column=0, sticky=W)
 
     #Cancel Button
     Cancel_Button = ttk.Button(ConfigWindow, text="Cancel", width=Config.BoxWidth, command = ConfigWindow.destroy)
-    Cancel_Button.grid(row=8, column=0, sticky=E)
+    Cancel_Button.grid(row=9, column=0, sticky=E)
 
 def Install(PlayAfter = False):
     """Installs minecraft"""
@@ -403,7 +423,7 @@ def InternetStatus():
     """Checks for a working internet connection"""
     TestURL = "http://minecraft.net/"
     try:
-        requests.get(TestURL, timeout=5)
+        requests.get(Config.Proxy + TestURL, timeout=5)
         return True
     except requests.ConnectionError:
         return False
@@ -431,7 +451,7 @@ def Update():
 def GetReleases():
     """Returns a list of all full mc releases"""
     Releases = []
-    Lista = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
+    Lista = requests.get(Config.Proxy + "https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
     VersionsA = Lista["versions"]
     for key in VersionsA:
         if key["type"] == "release":
@@ -443,10 +463,10 @@ def FormatTime(format="%H:%M:%S"):
     Now = datetime.now()
     return Now.strftime(format)
 
-#Initialising
-ConfigLoad()
-MainWindow = Tk()
+#The creation of the main window
 if __name__ == '__main__':
+    ConfigLoad()
+    MainWindow = Tk()
     Update()
     #Styles
     s = ttk.Style()
