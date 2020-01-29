@@ -24,6 +24,7 @@ Art = """ _____       __  __       __  __  _____
         |___/        |___/   by RealistikDash
 """
 print(Art)
+System = platform.system() #prevents system func from always being called
 
 class JsonFile:
     @classmethod
@@ -63,7 +64,7 @@ class Data:
 
 class Path:
     #class to store file paths, made for easy and quick changes
-    if platform.system() == "Windows":
+    if System == "Windows":
         Logo_Small = "img\\pymymc_logo_small.png"
         Logo_Icon = "img\\pymymc_ico.ico"
     else:
@@ -112,7 +113,7 @@ def ConfigWindowFunc():
                 Config.Config["AccessToken"] = ""
                 Config.Config["Username"] = ""
             Config.Config["JVMRAM"] = DRAM_Str
-            if platform.system() == "Windows":
+            if System == "Windows":
                 if MCPath_Str[-1] != "\\":
                     MCPath_Str = MCPath_Str + "\\"
             else:
@@ -137,7 +138,7 @@ def ConfigWindowFunc():
     ConfigWindow = Toplevel(MainWindow)
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
     ConfigWindow.title("PyMyMC Config") # sets window title
-    if platform.system() == "Windows":
+    if System == "Windows":
         #other systems dont use ico
         MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     ConfigWindow.resizable(False, False) #makes the window not resizable
@@ -318,7 +319,7 @@ def Play():
 
 def ConfigLoad():
     """Function to load/make new config"""
-    if platform.system() == "Windows":
+    if System == "Windows":
         MCDir = os.getenv('APPDATA') + "\\.minecraft\\"
     else:
         #I dont know if this will work with macs or not
@@ -424,7 +425,7 @@ if __name__ == '__main__':
 
     MainWindow.configure(background=Config.BG_Colour) # sets bg colour
     MainWindow.title("PyMyMC") # sets window title
-    if platform.system() == "Windows":
+    if System == "Windows":
         #other systems dont use ico
         MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     MainWindow.resizable(False, False) #makes the window not resizable
