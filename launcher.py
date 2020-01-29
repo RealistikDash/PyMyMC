@@ -45,7 +45,7 @@ class JsonFile:
 
 class Config:
     #Why a class? I dont know
-    Config = {} # this us loaded later on
+    Config = {} # this is loaded later on
 
     Version = "0.1.7MC"
     MinecraftDir = ""
@@ -55,12 +55,20 @@ class Config:
 
     HasInternet = True
     ShowHistorical = False
-    HideConsole = True #Hides the console (Windows only!)
 
-class Data:
-    Versions = { #currently not being used. for later purposes
-        "1.14.4" : "http://dl.ussr.pl/example.zip"
-    }
+    FakeLinux = False #If set to true, the System ver will be set to "Linux" to help test things
+    if FakeLinux:
+        #done in the class so the later on code isnt broken
+        System = "Linux"
+
+    #GUI properties for different systems
+    ## On some systems (namely linux) widget size would be way different than on my 
+    ## development environment (Windows) so this part of the code makes sure things
+    ## look at least similar on most major systems.
+    if System == "Windows":
+        BoxWidth = 10
+    else:
+        BoxWidth = 5
 
 class Path:
     #class to store file paths, made for easy and quick changes
@@ -185,11 +193,11 @@ def ConfigWindowFunc():
     Premium_Checkbox.grid(row=7, column=0, sticky=W)
     
     #Apply Button
-    Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=10, command = SaveConfig)
+    Apply_Button = ttk.Button(ConfigWindow, text="Apply", width=Config.BoxWidth, command = SaveConfig)
     Apply_Button.grid(row=8, column=0, sticky=W)
 
     #Cancel Button
-    Cancel_Button = ttk.Button(ConfigWindow, text="Cancel", width=10, command = ConfigWindow.destroy)
+    Cancel_Button = ttk.Button(ConfigWindow, text="Cancel", width=Config.BoxWidth, command = ConfigWindow.destroy)
     Cancel_Button.grid(row=8, column=0, sticky=E)
 
 def Install(PlayAfter = False):
@@ -464,11 +472,11 @@ if __name__ == '__main__':
     Password_Entry.grid(row=8, column = 0, sticky=W)
 
     #Play Button
-    Play_Button = ttk.Button(MainWindow, text="Play!", width=10, command = Play)
+    Play_Button = ttk.Button(MainWindow, text="Play!", width=Config.BoxWidth, command = Play)
     Play_Button.grid(row = 11, column=0, sticky = W)
 
     #Install Button
-    Install_Button = ttk.Button(MainWindow, text="Download!", width=10, command = Install)
+    Install_Button = ttk.Button(MainWindow, text="Download!", width=Config.BoxWidth, command = Install)
     Install_Button.grid(row = 11, column=0, sticky = E)
 
     #Version Label
@@ -510,7 +518,7 @@ if __name__ == '__main__':
     Ver_List.grid(row=10, column=0, sticky=W)
 
     #Config Button
-    Config_Button = ttk.Button(MainWindow, text="Config",  width=10, command = ConfigWindowFunc)
+    Config_Button = ttk.Button(MainWindow, text="Config",  width=Config.BoxWidth, command = ConfigWindowFunc)
     Config_Button.grid(row = 11, column=0)
 
     #Remember Me Checkbox
