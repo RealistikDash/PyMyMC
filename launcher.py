@@ -13,6 +13,9 @@ import requests
 from threading import Thread
 import platform #for os compatibillity
 import pathlib #for getting home folder
+from colorama import init, Fore #for coloured text within the console
+from datetime import datetime #for getting and formatting current time
+import random
 
 Art = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -23,25 +26,9 @@ Art = """ _____       __  __       __  __  _____
          __/ |        __/ |              
         |___/        |___/   by RealistikDash
 """
-print(Art)
+init() #initialises colorama
+print(random.choice([Fore.YELLOW, Fore.MAGENTA, Fore.BLUE, Fore.WHITE, Fore.CYAN, Fore.GREEN]) + Art + Fore.RESET)
 System = platform.system() #prevents system func from always being called
-
-class JsonFile:
-    @classmethod
-    def SaveDict(self, Dict, File):
-        """Saves a dict as a file"""
-        with open(File, 'w') as json_file:
-            json.dump(Dict, json_file, indent=4)
-
-    @classmethod
-    def GetDict(self, file):
-        """Returns a dict from file name"""
-        if not path.exists(file):
-            return {}
-        else:
-            with open(file) as f:
-                data = json.load(f)
-            return data
 
 class Config:
     #Why a class? I dont know
@@ -70,6 +57,34 @@ class Config:
     else:
         BoxWidth = 5
 
+class A:
+    """Aliases"""
+    #Colorama Aliases
+    red = Fore.RED
+    blue = Fore.BLUE
+    black = Fore.BLACK
+    res = Fore.RESET
+    yellow = Fore.YELLOW
+    green = Fore.GREEN
+    magenta = Fore.MAGENTA
+
+class JsonFile:
+    @classmethod
+    def SaveDict(self, Dict, File):
+        """Saves a dict as a file"""
+        with open(File, 'w') as json_file:
+            json.dump(Dict, json_file, indent=4)
+
+    @classmethod
+    def GetDict(self, file):
+        """Returns a dict from file name"""
+        if not path.exists(file):
+            return {}
+        else:
+            with open(file) as f:
+                data = json.load(f)
+            return data
+
 class Path:
     #class to store file paths, made for easy and quick changes
     if System == "Windows":
@@ -85,14 +100,17 @@ def MessageBox(title, content):
     #MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
     #MsgThread.start() #non blocking?
     messagebox.showinfo(title, content) #tkinter multiplatform messagebox rather than the windows one
+    print(A.blue + f"[{FormatTime()}]", content + A.res)
 
 def ErrorBox(title, content):
     """Creates an error dialogue box"""
     messagebox.showerror(title, content)
+    print(A.red + f"[{FormatTime()}]", content + A.res)
 
 def WarningBox(title, content):
     """Creater a warning dialogue box"""
     messagebox.showwarning(title, content)
+    print(A.yellow + f"[{FormatTime()}]", content + A.res)
 
 def ConfigWindowFunc():
     """Creates an advanced config window"""
@@ -419,6 +437,11 @@ def GetReleases():
         if key["type"] == "release":
             Releases.append(key)
     return Releases
+
+def FormatTime(format="%H:%M:%S"):
+    """Formats the current time"""
+    Now = datetime.now()
+    return Now.strftime(format)
 
 #Initialising
 ConfigLoad()
