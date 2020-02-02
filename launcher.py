@@ -118,17 +118,23 @@ def MessageBox(title, content):
     Update()
     #MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
     #MsgThread.start() #non blocking?
-    messagebox.showinfo(title, content) #tkinter multiplatform messagebox rather than the windows one
+    MsgThread = Thread(target=messagebox.showinfo, args=(title, content,))
+    MsgThread.start()
+    #messagebox.showinfo(title, content) #tkinter multiplatform messagebox rather than the windows one
     print(A.blue + f"[{FormatTime()}]", content + A.res)
 
 def ErrorBox(title, content):
     """Creates an error dialogue box"""
-    messagebox.showerror(title, content)
+    MsgThread = Thread(target=messagebox.showerror, args=(title, content,))
+    MsgThread.start()
+    #messagebox.showerror(title, content)
     print(A.red + f"[{FormatTime()}]", content + A.res)
 
 def WarningBox(title, content):
     """Creater a warning dialogue box"""
-    messagebox.showwarning(title, content)
+    MsgThread = Thread(target=messagebox.showwarning, args=(title, content,))
+    MsgThread.start()
+    #messagebox.showwarning(title, content)
     print(A.yellow + f"[{FormatTime()}]", content + A.res)
 
 def ConfigWindowFunc():
@@ -183,7 +189,7 @@ def ConfigWindowFunc():
             JsonFile.SaveDict(Config.Config, "config.json")
             ConfigLoad() #runs config update
             ConfigWindow.destroy()
-            MainWindow.update()
+            PopulateRoot()
         
         
         else:
@@ -512,6 +518,47 @@ def DefaultPresence():
     """Sets the default presence"""
     RPC.update(state="In the main menu.", large_image=Config.LargeImage, small_image=Config.RootImage)
 
+def PopulateRoot():
+    """Populates the fields in this function to make the window show up faster"""
+    print("Populating...")
+    if not Config.Config["Premium"]:
+        Username_Label["text"] = "Username:"
+    else:
+        Username_Label["text"] = "Email"
+    
+    #Version list
+    try:
+        #So the launcher still works if internet not here
+        if Config.ShowHistorical:
+            MCVerList = MCLib.utils.get_version_list()
+        else:
+            MCVerList = GetReleases()
+    except Exception:
+        MCVerList = []
+    McVers = []
+
+    # Code for searching for existing versions
+    if path.exists(Config.MinecraftDir+"versions\\"):
+        VersionList = os.listdir(Config.MinecraftDir+"versions\\")
+        for Realistik in VersionList:
+            McVers.append(Realistik)
+
+    for RealistikDash in MCVerList:
+        RealistikDash = RealistikDash["id"]
+        if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
+            if not Config.ShowHistorical and RealistikDash[0] == "b":
+                pass
+            else:
+                McVers.append(RealistikDash)
+
+    McVers = natsorted(McVers)
+    McVers.reverse()
+    McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
+    ListVariable = StringVar(MainWindow)
+    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+    Ver_List.configure(width=15) #only way i found of maintaining same width
+    Ver_List.grid(row=10, column=0, sticky=W)
+
 #The creation of the main window
 if __name__ == '__main__':
     RPC = Presence(Config.ClientId)
@@ -548,8 +595,6 @@ if __name__ == '__main__':
 
     #Username Label
     Username_Label = Label(MainWindow, text="Email:", bg = Config.BG_Colour, fg = "white", font = "none 12")
-    if not Config.Config["Premium"]:
-        Username_Label["text"] = "Username:"
     Username_Label.grid(row=5, column=0, sticky=W)
 
     #Username Entry
@@ -578,34 +623,7 @@ if __name__ == '__main__':
     Password_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
     Password_Label.grid(row=9, column=0, sticky=W)
 
-    #Version list
-    try:
-        #So the launcher still works if internet not here
-        if Config.ShowHistorical:
-            MCVerList = MCLib.utils.get_version_list()
-        else:
-            MCVerList = GetReleases()
-    except Exception:
-        MCVerList = []
     McVers = []
-
-    # Code for searching for existing versions
-    if path.exists(Config.MinecraftDir+"versions\\"):
-        VersionList = os.listdir(Config.MinecraftDir+"versions\\")
-        for Realistik in VersionList:
-            McVers.append(Realistik)
-
-    for RealistikDash in MCVerList:
-        RealistikDash = RealistikDash["id"]
-        if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
-            if not Config.ShowHistorical and RealistikDash[0] == "b":
-                pass
-            else:
-                McVers.append(RealistikDash)
-
-    McVers = natsorted(McVers)
-    McVers.reverse()
-    McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
 
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
@@ -625,4 +643,6 @@ if __name__ == '__main__':
     Download_Progress = ttk.Progressbar(MainWindow, length=245)
     Download_Progress.grid(row=12, column=0)
 
+    PopulateThread = Thread(target=PopulateRoot)
+    PopulateThread.start()
     MainWindow.mainloop()
