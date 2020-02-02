@@ -135,6 +135,12 @@ def ConfigWindowFunc():
     """Creates an advanced config window"""
     #i know this is not supposed to be how you do it but "it just works"
     Update()
+
+    def ConfigCloseProtocol():
+        """Function ran when the config window is closed"""
+        ConfigWindow.destroy()
+        DefaultPresence()
+
     def SaveConfig():
         """This is the first time i use a def in a def""" #and im bad at making them
         Update()
@@ -183,10 +189,13 @@ def ConfigWindowFunc():
         else:
             ErrorBox("PyMyMC Error!", "The RAM value has to be an integer (full number) over 0.")
 
+    #Discord Rich Presence Update
+    RPC.update(state="Configuring things...", small_image=Config.ConfigImage, large_image=Config.LargeImage)
     #Initial window settings
     ConfigWindow = Toplevel(MainWindow)
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
     ConfigWindow.title("PyMyMC Config") # sets window title
+    ConfigWindow.protocol("WM_DELETE_WINDOW", ConfigCloseProtocol)
     if System == "Windows":
         #other systems dont use ico
         MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
@@ -279,6 +288,31 @@ def Play():
     """Function that is done when the play button is pressed"""
     #Note 25/12/19 | Deal with sessions expiring
     Update()
+    def PlayRPCUpdate(version, username, isPremium):
+        """Updates the rich presence so i dont have to copy and paste the same code on premium and nonpremium"""
+        #Checks if the user is playing vanilla mc or modded for RPC icon
+        IsVanilla = True
+        MCVerList = MCLib.utils.get_version_list()
+        VerList = []
+        for thing in MCVerList:
+            VerList.append(thing["id"])
+        if version in VerList:
+            IsVanilla = True
+        else:
+            IsVanilla = False
+        if IsVanilla:
+            SmallIcon = Config.VanillaImage
+        else:
+            SmallIcon = Config.ModdedImage
+
+        #Details text
+        if not isPremium:
+            PrState = ", non-premuim"
+        else:
+            PrState = ""
+        RPC.update(state=f"Playing Minecraft {version}", large_image=Config.LargeImage, small_image=SmallIcon, details=f"Playing as {username}{PrState}")
+
+
     Email = Username_Entry.get()
     Password = Password_Entry.get()
     Version = ListVariable.get()
@@ -313,6 +347,7 @@ def Play():
             
             Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
             MainWindow.destroy()
+            PlayRPCUpdate(Version, Email, False)
             
             subprocess.call(Command)
             #MessageBox("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
@@ -366,6 +401,7 @@ def Play():
                         Config.Config["Username"] = Username
                         JsonFile.SaveDict(Config.Config, "config.json") #saves credentials to config.json
                     Config.Config["LastSelected"] = Version
+                    PlayRPCUpdate(Version, Username, True)
                     JsonFile.SaveDict(Config.Config, "config.json") #last version saving
                     subprocess.call(Command)
                     #MessageBox("PyMyMC", "Thank you for using PyMyMC!")
@@ -474,7 +510,7 @@ def FormatTime(format="%H:%M:%S"):
 
 def DefaultPresence():
     """Sets the default presence"""
-    RPC.update(state="In the main menu.", large_image=Config.LargeImage)
+    RPC.update(state="In the main menu.", large_image=Config.LargeImage, small_image=Config.RootImage)
 
 #The creation of the main window
 if __name__ == '__main__':
