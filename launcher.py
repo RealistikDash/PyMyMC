@@ -16,6 +16,7 @@ import pathlib #for getting home folder
 from colorama import init, Fore #for coloured text within the console
 from datetime import datetime #for getting and formatting current time
 import random
+from pypresence import Presence
 
 Art = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -42,6 +43,15 @@ class Config:
 
     HasInternet = True
     ShowHistorical = False
+
+    #Discord Rich Presence Settings
+    Enable = True
+    ClientId = "673338815301287966"
+    LargeImage = "pymymc_logo"
+    ConfigImage = "config"
+    RootImage = "main"
+    VanillaImage = "vanilla"
+    ModdedImage = "modded"
 
     #More advanced options
     # If set to true, the System ver will be set to "Linux" to help test things. That variable is used by PyMyMC
@@ -268,7 +278,6 @@ def Install(PlayAfter = False):
 def Play():
     """Function that is done when the play button is pressed"""
     #Note 25/12/19 | Deal with sessions expiring
-    
     Update()
     Email = Username_Entry.get()
     Password = Password_Entry.get()
@@ -463,8 +472,15 @@ def FormatTime(format="%H:%M:%S"):
     Now = datetime.now()
     return Now.strftime(format)
 
+def DefaultPresence():
+    """Sets the default presence"""
+    RPC.update(state="In the main menu.", large_image=Config.LargeImage)
+
 #The creation of the main window
 if __name__ == '__main__':
+    RPC = Presence(Config.ClientId)
+    RPC.connect()
+    DefaultPresence()
     ConfigLoad()
     MainWindow = Tk()
     Update()
