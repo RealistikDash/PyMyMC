@@ -1,7 +1,7 @@
 # PyMyMC
 A simple Minecraft Launcher made in Python. Made by RealistikDash.
 
-![UI Show](https://im.ussr.online/5e22208b782e25.25495638-PyMyMC-like-6.jpg)
+![UI Show](https://i.imgur.com/vB8Shu5.png)
 
 # Installation
 Unlike my other projects, the setup for this is very easy. It only requires one command.
@@ -32,11 +32,11 @@ This launcher allows you access *some* of the features the normal Minecraft laun
 
 Here are the features planned for the near future:
 
-- Discord rich presence
-
 - UI Overhaul
 
 - Better non-premium UI
+
+- Fix remember me tokens expiring
 
 # Key
 Sometimes you will see certain letter combos that were created by me. Here is what they mean:

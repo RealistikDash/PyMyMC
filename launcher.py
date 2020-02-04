@@ -41,6 +41,7 @@ class Config:
 
     BG_Colour = '#2F3136'
     FG_Colour = "#2c3e50"
+    Theme = "equilux"
 
     HasInternet = True
     ShowHistorical = False
@@ -576,13 +577,13 @@ if __name__ == '__main__':
         RPC.connect()
         DefaultPresence()
     ConfigLoad()
-    MainWindow = ThemedTk(theme="equilux")
+    MainWindow = ThemedTk(theme=Config.Theme)
     Update()
     #Styles
     s = ttk.Style()
     s.configure('TButton', background=Config.FG_Colour, fieldbackground=Config.FG_Colour)
     s.configure('TCheckbutton', background=Config.BG_Colour, foreground="white")
-    s.configure('TEntry', fieldbackground=Config.FG_Colour)
+    s.configure('TEntry', fieldbackground=Config.FG_Colour, background=Config.FG_Colour)
 
     MainWindow.configure(background=Config.BG_Colour) # sets bg colour
     MainWindow.title("PyMyMC") # sets window title
