@@ -634,10 +634,11 @@ if __name__ == '__main__':
     Version_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
     Version_Label.grid(row=9, column=0, sticky=W)
 
-    McVers = []
+    #Im just trying to get something working
+    Empty = []
 
     ListVariable = StringVar(MainWindow)
-    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *Empty)
     Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
@@ -655,5 +656,38 @@ if __name__ == '__main__':
     Download_Progress.grid(row=12, column=0)
 
     PopulateThread = Thread(target=PopulateRoot)
-    PopulateThread.start()
+    #PopulateThread.start()
+    if True:
+        #i broke something
+        try:
+            #So the launcher still works if internet not here
+            if Config.ShowHistorical:
+                MCVerList = MCLib.utils.get_version_list()
+            else:
+                MCVerList = GetReleases()
+        except Exception:
+            MCVerList = []
+        McVers = []
+
+        # Code for searching for existing versions
+        if path.exists(Config.MinecraftDir+"versions\\"):
+            VersionList = os.listdir(Config.MinecraftDir+"versions\\")
+            for Realistik in VersionList:
+                McVers.append(Realistik)
+
+        for RealistikDash in MCVerList:
+            RealistikDash = RealistikDash["id"]
+            if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
+                if not Config.ShowHistorical and RealistikDash[0] == "b":
+                    pass
+                else:
+                    McVers.append(RealistikDash)
+
+        McVers = natsorted(McVers)
+        McVers.reverse()
+        McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
+        ListVariable = StringVar(MainWindow)
+        Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+        Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
+        Ver_List.grid(row=10, column=0, sticky=W)
     MainWindow.mainloop()
