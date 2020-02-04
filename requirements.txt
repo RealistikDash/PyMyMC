@@ -4,3 +4,4 @@ natsort==6.2.0
 requests
 colorama
 pypresence
+ttkthemes

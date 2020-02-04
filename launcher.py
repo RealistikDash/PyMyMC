@@ -17,6 +17,7 @@ from colorama import init, Fore #for coloured text within the console
 from datetime import datetime #for getting and formatting current time
 import random
 from pypresence import Presence
+from ttkthemes import ThemedTk #for custom themes! i like
 
 Art = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -45,7 +46,7 @@ class Config:
     ShowHistorical = False
 
     #Discord Rich Presence Settings
-    Enable = True
+    RPCEnable = False
     ClientId = "673338815301287966"
     LargeImage = "pymymc_logo"
     ConfigImage = "config"
@@ -73,8 +74,14 @@ class Config:
     ## look at least similar on most major systems.
     if System == "Windows":
         BoxWidth = 10
+        EntryLen = 40
+        BarLen = 245
+        ListLen = 15
     else:
-        BoxWidth = 5
+        BoxWidth = 7
+        EntryLen = 30
+        BarLen = 245
+        ListLen = 8
 
 class A:
     """Aliases"""
@@ -196,7 +203,8 @@ def ConfigWindowFunc():
             ErrorBox("PyMyMC Error!", "The RAM value has to be an integer (full number) over 0.")
 
     #Discord Rich Presence Update
-    RPC.update(state="Configuring things...", small_image=Config.ConfigImage, large_image=Config.LargeImage)
+    if Config.RPCEnable:
+        RPC.update(state="Configuring things...", small_image=Config.ConfigImage, large_image=Config.LargeImage)
     #Initial window settings
     ConfigWindow = Toplevel(MainWindow)
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
@@ -297,26 +305,27 @@ def Play():
     def PlayRPCUpdate(version, username, isPremium):
         """Updates the rich presence so i dont have to copy and paste the same code on premium and nonpremium"""
         #Checks if the user is playing vanilla mc or modded for RPC icon
-        IsVanilla = True
-        MCVerList = MCLib.utils.get_version_list()
-        VerList = []
-        for thing in MCVerList:
-            VerList.append(thing["id"])
-        if version in VerList:
+        if Config.RPCEnable:
             IsVanilla = True
-        else:
-            IsVanilla = False
-        if IsVanilla:
-            SmallIcon = Config.VanillaImage
-        else:
-            SmallIcon = Config.ModdedImage
+            MCVerList = MCLib.utils.get_version_list()
+            VerList = []
+            for thing in MCVerList:
+                VerList.append(thing["id"])
+            if version in VerList:
+                IsVanilla = True
+            else:
+                IsVanilla = False
+            if IsVanilla:
+                SmallIcon = Config.VanillaImage
+            else:
+                SmallIcon = Config.ModdedImage
 
-        #Details text
-        if not isPremium:
-            PrState = ", non-premuim"
-        else:
-            PrState = ""
-        RPC.update(state=f"Playing Minecraft {version}", large_image=Config.LargeImage, small_image=SmallIcon, details=f"Playing as {username}{PrState}")
+            #Details text
+            if not isPremium:
+                PrState = ", non-premuim"
+            else:
+                PrState = ""
+            RPC.update(state=f"Playing Minecraft {version}", large_image=Config.LargeImage, small_image=SmallIcon, details=f"Playing as {username}{PrState}")
 
 
     Email = Username_Entry.get()
@@ -516,7 +525,8 @@ def FormatTime(format="%H:%M:%S"):
 
 def DefaultPresence():
     """Sets the default presence"""
-    RPC.update(state="In the main menu.", large_image=Config.LargeImage, small_image=Config.RootImage)
+    if Config.RPCEnable:
+        RPC.update(state="In the main menu.", large_image=Config.LargeImage, small_image=Config.RootImage)
 
 def PopulateRoot():
     """Populates the fields in this function to make the window show up faster"""
@@ -556,16 +566,17 @@ def PopulateRoot():
     McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
-    Ver_List.configure(width=15) #only way i found of maintaining same width
+    Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
 #The creation of the main window
 if __name__ == '__main__':
-    RPC = Presence(Config.ClientId)
-    RPC.connect()
-    DefaultPresence()
+    if Config.RPCEnable:
+        RPC = Presence(Config.ClientId)
+        RPC.connect()
+        DefaultPresence()
     ConfigLoad()
-    MainWindow = Tk()
+    MainWindow = ThemedTk(theme="equilux")
     Update()
     #Styles
     s = ttk.Style()
@@ -599,7 +610,7 @@ if __name__ == '__main__':
 
     #Username Entry
     US_EntryText = StringVar() #
-    Username_Entry = ttk.Entry(MainWindow, width=40, textvariable=US_EntryText)
+    Username_Entry = ttk.Entry(MainWindow, width=Config.EntryLen, textvariable=US_EntryText)
     US_EntryText.set(Config.Config["Email"]) #inserts config email here
     Username_Entry.grid(row=6, column = 0, sticky=W)
 
@@ -608,7 +619,7 @@ if __name__ == '__main__':
     Password_Label.grid(row=7, column=0, sticky=W)
 
     #Password Entry
-    Password_Entry = ttk.Entry(MainWindow, width=40, show="*")
+    Password_Entry = ttk.Entry(MainWindow, width=Config.EntryLen, show="*")
     Password_Entry.grid(row=8, column = 0, sticky=W)
 
     #Play Button
@@ -627,7 +638,7 @@ if __name__ == '__main__':
 
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
-    Ver_List.configure(width=15) #only way i found of maintaining same width
+    Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
     #Config Button
@@ -640,7 +651,7 @@ if __name__ == '__main__':
     RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
     #Download Progress Bar
-    Download_Progress = ttk.Progressbar(MainWindow, length=245)
+    Download_Progress = ttk.Progressbar(MainWindow, length=Config.BarLen)
     Download_Progress.grid(row=12, column=0)
 
     PopulateThread = Thread(target=PopulateRoot)
