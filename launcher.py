@@ -631,8 +631,8 @@ if __name__ == '__main__':
     Install_Button.grid(row = 11, column=0, sticky = E)
 
     #Version Label
-    Password_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
-    Password_Label.grid(row=9, column=0, sticky=W)
+    Version_Label = Label(MainWindow, text="Version:", bg = Config.BG_Colour, fg = "white", font = "none 12")
+    Version_Label.grid(row=9, column=0, sticky=W)
 
     McVers = []
 
