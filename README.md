@@ -38,6 +38,8 @@ Here are the features planned for the near future:
 
 - Fix remember me tokens expiring
 
+- Rewrite everything lmao
+
 # Key
 Sometimes you will see certain letter combos that were created by me. Here is what they mean:
 
