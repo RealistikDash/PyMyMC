@@ -59,12 +59,6 @@ class Config:
     # If set to true, the System ver will be set to "Linux" to help test things. That variable is used by PyMyMC
     # to check what OS the user is using (eg Windows, Linux, MacOS/Darwin)
     FakeLinux = False 
-    # Leave blank for no proxy. This will route all the requests from PyMyMC (not its modules) via the provided proxy.
-    # The proxy must support being invoked directly and must support JSON. The main purpose of this is to bypass any
-    # blocks of the Mojang and Minecraft webste (which I need for my primary use of this lanucher). Using a slow
-    # proxy can slow down this program so i recommend not using one unless completely necessary. Setting this proxy
-    # incorrectly can cause the launcher to have connection problems and for now there is no check for it.
-    Proxy = "" 
     if FakeLinux:
         #done in the class so the later on code isnt broken
         System = "Linux"
@@ -482,9 +476,9 @@ def ConfigLoad():
 
 def InternetStatus():
     """Checks for a working internet connection"""
-    TestURL = "http://minecraft.net/"
+    TestURL = "https://1.1.1.1/"
     try:
-        requests.get(Config.Proxy + TestURL, timeout=5)
+        requests.get(TestURL, timeout=5)
         return True
     except requests.ConnectionError:
         return False
@@ -512,7 +506,7 @@ def Update():
 def GetReleases():
     """Returns a list of all full mc releases"""
     Releases = []
-    Lista = requests.get(Config.Proxy + "https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
+    Lista = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
     VersionsA = Lista["versions"]
     for key in VersionsA:
         if key["type"] == "release":
