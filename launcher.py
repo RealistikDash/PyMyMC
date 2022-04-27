@@ -1,26 +1,24 @@
 #RealistikDash here, just be careful and wear eye protection while looking at this
+from threading import Thread
 from tkinter import *
 from tkinter import ttk, messagebox
-import minecraft_launcher_lib as MCLib
-import subprocess
-import os
-import os.path
-from os import path
-import json
 from natsort import natsorted
-import hashlib
-import requests
-from threading import Thread
-import platform
-import pathlib
 from colorama import init, Fore
 from datetime import datetime
-import random
 from pypresence import Presence
 from ttkthemes import ThemedTk
 from _typing import (
     MinecraftRelease,
 )
+import minecraft_launcher_lib as MCLib
+import subprocess
+import os
+import json
+import hashlib
+import requests
+import platform
+import pathlib
+import random
 import traceback
 import glob
 
@@ -34,7 +32,14 @@ ASCII = """ _____       __  __       __  __  _____
         |___/        |___/   by RealistikDash
 """
 init() #initialises colorama
-COLOURS = (Fore.YELLOW, Fore.MAGENTA, Fore.BLUE, Fore.WHITE, Fore.CYAN, Fore.GREEN)
+COLOURS = (
+    Fore.YELLOW,
+    Fore.MAGENTA,
+    Fore.BLUE,
+    Fore.WHITE, 
+    Fore.CYAN,
+    Fore.GREEN,
+)
 SYSTEM = platform.system()
 
 class Config:
@@ -66,6 +71,7 @@ class Config:
     FakeLinux = False 
     if FakeLinux:
         #done in the class so the later on code isnt broken
+        global SYSTEM
         SYSTEM = "Linux"
 
     #GUI properties for different systems
@@ -83,22 +89,11 @@ class Config:
         BarLen = 245
         ListLen = 8
 
-class JsonFile:
-    @classmethod
-    def SaveDict(self, Dict, File):
-        """Saves a dict as a file"""
-        with open(File, 'w') as json_file:
-            json.dump(Dict, json_file, indent=4)
+def save_config() -> None:
+    """Saves the current state of the config into the file."""
 
-    @classmethod
-    def GetDict(self, file):
-        """Returns a dict from file name"""
-        if not path.exists(file):
-            return {}
-        else:
-            with open(file) as f:
-                data = json.load(f)
-            return data
+    with open("config.json", "w") as f:
+        json.dump(Config.Config, f, indent= 4)
 
 class Path:
     #class to store file paths, made for easy and quick changes
@@ -132,7 +127,6 @@ def log_error(content: str) -> None:
 
 def MessageBox(title, content):
     """Creates a message box"""
-    Update()
     #MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
     #MsgThread.start() #non blocking?
     MsgThread = Thread(target=messagebox.showinfo, args=(title, content,))
@@ -154,7 +148,6 @@ def WarningBox(title, content):
 def ConfigWindowFunc():
     """Creates an advanced config window"""
     #i know this is not supposed to be how you do it but "it just works"
-    Update()
 
     def ConfigCloseProtocol():
         """Function ran when the config window is closed"""
@@ -162,8 +155,6 @@ def ConfigWindowFunc():
         DefaultPresence()
 
     def SaveConfig():
-        """This is the first time i use a def in a def""" #and im bad at making them
-        Update()
         MCPath_Str = MCPath_StringVar.get()
         DRAM_Str = DRAM_StringVar.get()
         ForgetMe_Int = int(RememberMe_Var.get())
@@ -200,7 +191,7 @@ def ConfigWindowFunc():
             if Historical_Var.get() == 1:
                 Config.Config["OnlyReleases"] = False
             Config.Config["MinecraftDir"] = MCPath_Str
-            JsonFile.SaveDict(Config.Config, "config.json")
+            save_config()
             ConfigLoad() #runs config update
             ConfigWindow.destroy()
             PopulateRoot()
@@ -281,10 +272,9 @@ def ConfigWindowFunc():
 def Install(PlayAfter = False):
     """Installs minecraft"""
     #Version = "1.14.4" #later change it into a gui list # i did
-    Update()
     Version = ListVariable.get()
 
-    MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
+    MinecraftFound = os.path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
     if MinecraftFound:
         MessageBox("PyMyMC Info!", "This version is already installed! Press play to play it!")
 
@@ -305,10 +295,10 @@ def Install(PlayAfter = False):
             DlThread.join()
             Play()
 
+# TODO: Rewrite
 def Play():
     """Function that is done when the play button is pressed"""
     #Note 25/12/19 | Deal with sessions expiring
-    Update()
     def PlayRPCUpdate(version, username, isPremium):
         """Updates the rich presence so i dont have to copy and paste the same code on premium and nonpremium"""
         #Checks if the user is playing vanilla mc or modded for RPC icon
@@ -364,10 +354,9 @@ def Play():
 
             if RememberMe:
                 Config.Config["Email"] = Email
-                JsonFile.SaveDict(Config.Config, "config.json")
 
             Config.Config["LastSelected"] = Version
-            JsonFile.SaveDict(Config.Config, "config.json") #last version saving
+            save_config()
             
             Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
             MainWindow.destroy()
@@ -402,9 +391,7 @@ def Play():
                     Username = Config.Config["Username"]
                     Uuid = Config.Config["UUID"]
 
-
-                #RealistikDash was here
-                MinecraftFound = path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
+                MinecraftFound = os.path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
 
                 if MinecraftFound:
                     options = {
@@ -423,27 +410,25 @@ def Play():
                         Config.Config["AccessToken"] = AccessToken
                         Config.Config["UUID"] = Uuid
                         Config.Config["Username"] = Username
-                        JsonFile.SaveDict(Config.Config, "config.json") #saves credentials to config.json
                     Config.Config["LastSelected"] = Version
                     PlayRPCUpdate(Version, Username, True)
-                    JsonFile.SaveDict(Config.Config, "config.json") #last version saving
+                    save_config()
                     subprocess.call(Command)
                     #MessageBox("PyMyMC", "Thank you for using PyMyMC!")
                 else:
                     Install(True)
 
-def ConfigLoad():
-    """Function to load/make new config"""
-    if SYSTEM == "Windows":
-        MCDir = os.getenv('APPDATA') + "\\.minecraft\\"
-    else:
-        #I dont know if this will work with macs or not
-        MCDir = str(pathlib.Path.home()) + "/.minecraft/"
-    ExampleConfig = {
+if SYSTEM == "Windows":
+    MC_DIR = os.getenv('APPDATA') + "\\.minecraft\\"
+else:
+    #I dont know if this will work with macs or not
+    MC_DIR = str(pathlib.Path.home()) + "/.minecraft/"
+
+EXAMPLE_CONFIG = {
         "IsExample" : False,
-        "MinecraftDir" : MCDir,
+        "MinecraftDir" : MC_DIR,
         "Email" : "",
-        "UUID" : "", #remember kids, never store passwords
+        "UUID" : "",
         "AccessToken" : "",
         "JVMRAM" : 2, #in GB
         "Premium" : True,
@@ -451,15 +436,28 @@ def ConfigLoad():
         "OnlyReleases" : True,
     }
 
-    JSONConfig = JsonFile.GetDict("config.json")
-    if JSONConfig == {}:
-        JSONConfig = ExampleConfig
-        JsonFile.SaveDict(JSONConfig, "config.json")
+# TODO: Full rewrite.
+def ConfigLoad():
+    """Function to load/make new config"""
+    #JSONConfig = JsonFile.GetDict("config.json")
+    #if JSONConfig == {}:
+    #    JSONConfig = ExampleConfig
+    #    JsonFile.SaveDict(JSONConfig, "config.json")
+    #if JSONConfig["IsExample"] == True:
+    #    Config.Config = ExampleConfig
+    #else:
+    #    Config.Config = JSONConfig
 
-    if JSONConfig["IsExample"] == True:
-        Config.Config = ExampleConfig
+    if not os.path.exists("config.json"):
+        base_cfg = EXAMPLE_CONFIG.copy()
     else:
-        Config.Config = JSONConfig
+        with open("config.json", "r") as f:
+            base_cfg = json.load(f)
+        
+        if base_cfg == {}:
+            base_cfg = EXAMPLE_CONFIG.copy()
+    
+    Config.Config = base_cfg
 
     Config.MinecraftDir = Config.Config["MinecraftDir"]  
 
@@ -467,19 +465,15 @@ def ConfigLoad():
     if "JVMRAM" not in list(Config.Config.keys()):
         #for reuse of older configs
         Config.Config["JVMRAM"] = 2
-        JsonFile.SaveDict(Config.Config, "config.json")
     
     if "Premium" not in list(Config.Config.keys()):
         Config.Config["Premium"] = True
-        JsonFile.SaveDict(Config.Config, "config.json")
 
     if "LastSelected" not in list(Config.Config.keys()):
         Config.Config["LastSelected"] = "1.15.1"
-        JsonFile.SaveDict(Config.Config, "config.json")
     
     if "OnlyReleases" not in list(Config.Config.keys()):
         Config.Config["OnlyReleases"] = True
-        JsonFile.SaveDict(Config.Config, "config.json")
         Config.ShowHistorical = False
 
     #Only Releases Fixes. Not cleanest way of doing it but gets the job done
@@ -487,12 +481,15 @@ def ConfigLoad():
         Config.ShowHistorical = False
     else:
         Config.ShowHistorical = True
+    
+    save_config()
+    Config.HasInternet = check_internet()
 
-def InternetStatus():
+INTERNET_TEST_URL = "https://1.1.1.1/"
+def check_internet() -> bool:
     """Checks for a working internet connection"""
-    TestURL = "https://1.1.1.1/"
     try:
-        resp = requests.get(TestURL, timeout=1)
+        resp = requests.get(INTERNET_TEST_URL, timeout=1)
         return resp.status_code == 200
     except requests.ConnectionError:
         return False
@@ -513,10 +510,6 @@ def SetProgressHandler(status):
 def SetMaxHandler(status):
     Download_Progress["maximum"] = int(status)
 
-def Update():
-    """Function ran on every part of the code to make sure everything is right"""
-    Config.HasInternet = InternetStatus()
-
 def get_release_list() -> list[MinecraftRelease]:
     """Returns a list of all full mc releases"""
     releases_res = requests.get(
@@ -525,15 +518,18 @@ def get_release_list() -> list[MinecraftRelease]:
     
     return [ver for ver in releases_res["versions"] if ver["type"] == "release"]
 
-def FormatTime(format="%H:%M:%S"):
+def FormatTime(format="%H:%M:%S") -> str:
     """Formats the current time"""
-    Now = datetime.now()
-    return Now.strftime(format)
+    return datetime.now().strftime(format)
 
 def DefaultPresence():
     """Sets the default presence"""
     if Config.RPCEnable:
-        RPC.update(state="In the main menu.", large_image=Config.LargeImage, small_image=Config.RootImage)
+        RPC.update(
+            state= "In the main menu.",
+            large_image= Config.LargeImage,
+            small_image= Config.RootImage
+        )
 
 def PopulateRoot():
     """Populates the fields in this function to make the window show up faster"""
@@ -547,9 +543,11 @@ def PopulateRoot():
     minecraft_versions = fetch_versions()
     minecraft_versions.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
     ListVariable = StringVar(MainWindow)
-    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *minecraft_versions)
-    Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
-    Ver_List.grid(row=10, column=0, sticky=W)
+    
+    #global Ver_List
+    #Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *minecraft_versions)
+    #Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
+    #Ver_List.grid(row=10, column=0, sticky=W)
 
 def fetch_versions() -> list[str]:
     """Returns a list strings of all the available versions."""
@@ -586,15 +584,17 @@ def fetch_versions() -> list[str]:
 #The creation of the main window
 if __name__ == '__main__':
     log_coloured(ASCII, random.choice(COLOURS))
+    log_info("Checking internet status...")
+    ConfigLoad()
     if Config.RPCEnable:
         log_info("Configuring the Discord Rich Presence...")
         RPC = Presence(Config.ClientId)
         RPC.connect()
         DefaultPresence()
-    ConfigLoad()
+    log_info("Loading themes...")
     MainWindow = ThemedTk(theme=Config.Theme)
-    Update()
     #Styles
+    log_info("Configuring the UI...")
     s = ttk.Style()
     s.configure('TButton', background=Config.FG_Colour, fieldbackground=Config.FG_Colour)
     s.configure('TCheckbutton', background=Config.BG_Colour, foreground="white")
@@ -678,4 +678,5 @@ if __name__ == '__main__':
     Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
     
+    log_info("Done!")
     MainWindow.mainloop()
