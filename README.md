@@ -1,22 +1,22 @@
 # PyMyMC
-A simple Minecraft Launcher made in Python. Made by RealistikDash.
+A simple Minecraft Launcher made in Python. An old codebase from when I was learning Python that should not be representative of my current skill.
 
 ![UI Show](https://i.imgur.com/vB8Shu5.png)
 
 # Installation
-Unlike my other projects, the setup for this is very easy. It only requires one command.
+Installation only requires one command.
 - Get Python 3.6 or above.
 
-- Open CMD in the diretory where you extracted the files.
+- Open CMD in the diretory where you have extracted the files.
 
-- Do pip install -r requirements.txt
+- Run pip install -r requirements.txt
 
 - Run launcher.py
 
 And that's it!
 
 # Features
-This launcher allows you access *some* of the features the normal Minecraft launcher does. This includes but is not limited to:
+This launcher allows you to access *some* of the features the normal Minecraft launcher does. This includes but is not limited to:
 
 - Downloading Minecraft (all versions supported by the normal launcher)
 

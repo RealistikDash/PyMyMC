@@ -5,21 +5,26 @@ import minecraft_launcher_lib as MCLib
 import subprocess
 import os
 import os.path
-from os import path #not sure if necessary
+from os import path
 import json
-from natsort import natsorted #for version arrangement
-import hashlib # for nonpremuim uuid making
+from natsort import natsorted
+import hashlib
 import requests
 from threading import Thread
-import platform #for os compatibillity
-import pathlib #for getting home folder
-from colorama import init, Fore #for coloured text within the console
-from datetime import datetime #for getting and formatting current time
+import platform
+import pathlib
+from colorama import init, Fore
+from datetime import datetime
 import random
 from pypresence import Presence
-from ttkthemes import ThemedTk #for custom themes! i like
+from ttkthemes import ThemedTk
+from _typing import (
+    MinecraftRelease,
+)
+import traceback
+import glob
 
-Art = """ _____       __  __       __  __  _____ 
+ASCII = """ _____       __  __       __  __  _____ 
  |  __ \     |  \/  |     |  \/  |/ ____|
  | |__) |   _| \  / |_   _| \  / | |     
  |  ___/ | | | |\/| | | | | |\/| | |     
@@ -29,14 +34,14 @@ Art = """ _____       __  __       __  __  _____
         |___/        |___/   by RealistikDash
 """
 init() #initialises colorama
-print(random.choice([Fore.YELLOW, Fore.MAGENTA, Fore.BLUE, Fore.WHITE, Fore.CYAN, Fore.GREEN]) + Art + Fore.RESET)
-System = platform.system() #prevents system func from always being called
+COLOURS = (Fore.YELLOW, Fore.MAGENTA, Fore.BLUE, Fore.WHITE, Fore.CYAN, Fore.GREEN)
+SYSTEM = platform.system()
 
 class Config:
     #Why a class? I dont know
     Config = {} # this is loaded later on
 
-    Version = "0.1.7MC"
+    Version = "0.1.8MC"
     MinecraftDir = ""
 
     BG_Colour = '#2F3136'
@@ -61,13 +66,13 @@ class Config:
     FakeLinux = False 
     if FakeLinux:
         #done in the class so the later on code isnt broken
-        System = "Linux"
+        SYSTEM = "Linux"
 
     #GUI properties for different systems
     ## On some systems (namely linux) widget size would be way different than on my 
     ## development environment (Windows) so this part of the code makes sure things
     ## look at least similar on most major systems.
-    if System == "Windows":
+    if SYSTEM == "Windows":
         BoxWidth = 10
         EntryLen = 40
         BarLen = 245
@@ -77,17 +82,6 @@ class Config:
         EntryLen = 30
         BarLen = 245
         ListLen = 8
-
-class A:
-    """Aliases"""
-    #Colorama Aliases
-    red = Fore.RED
-    blue = Fore.BLUE
-    black = Fore.BLACK
-    res = Fore.RESET
-    yellow = Fore.YELLOW
-    green = Fore.GREEN
-    magenta = Fore.MAGENTA
 
 class JsonFile:
     @classmethod
@@ -108,12 +102,33 @@ class JsonFile:
 
 class Path:
     #class to store file paths, made for easy and quick changes
-    if System == "Windows":
+    if SYSTEM == "Windows":
         Logo_Small = "img\\pymymc_logo_small.png"
         Logo_Icon = "img\\pymymc_ico.ico"
     else:
         Logo_Small = "img/pymymc_logo_small.png"
         Logo_Icon = "img/pymymc_logo_small.png"
+
+def log_coloured(content: str, colour: str) -> None:
+    """Prints a message to the console, prefixing the message with `colour` and
+    ending it with a colour reset."""
+
+    print(colour + content + Fore.RESET)
+
+def log_info(content: str) -> None:
+    """Logs `content` to console with the severity `INFO`."""
+
+    log_coloured(f"[{FormatTime()}] {content}", Fore.BLUE)
+
+def log_warning(content: str) -> None:
+    """Logs `content` to console with the severity `WARNING`."""
+
+    log_coloured(f"[{FormatTime()}] {content}", Fore.YELLOW)
+
+def log_error(content: str) -> None:
+    """Logs `content` to console with the severity `ERROR`."""
+
+    log_coloured(f"[{FormatTime()}] {content}", Fore.RED)
 
 def MessageBox(title, content):
     """Creates a message box"""
@@ -122,22 +137,19 @@ def MessageBox(title, content):
     #MsgThread.start() #non blocking?
     MsgThread = Thread(target=messagebox.showinfo, args=(title, content,))
     MsgThread.start()
-    #messagebox.showinfo(title, content) #tkinter multiplatform messagebox rather than the windows one
-    print(A.blue + f"[{FormatTime()}]", content + A.res)
+    log_info(content)
 
 def ErrorBox(title, content):
     """Creates an error dialogue box"""
     MsgThread = Thread(target=messagebox.showerror, args=(title, content,))
     MsgThread.start()
-    #messagebox.showerror(title, content)
-    print(A.red + f"[{FormatTime()}]", content + A.res)
+    log_error(content)
 
 def WarningBox(title, content):
     """Creater a warning dialogue box"""
     MsgThread = Thread(target=messagebox.showwarning, args=(title, content,))
     MsgThread.start()
-    #messagebox.showwarning(title, content)
-    print(A.yellow + f"[{FormatTime()}]", content + A.res)
+    log_warning(content)
 
 def ConfigWindowFunc():
     """Creates an advanced config window"""
@@ -172,7 +184,7 @@ def ConfigWindowFunc():
                 Config.Config["AccessToken"] = ""
                 Config.Config["Username"] = ""
             Config.Config["JVMRAM"] = DRAM_Str
-            if System == "Windows":
+            if SYSTEM == "Windows":
                 if MCPath_Str[-1] != "\\":
                     MCPath_Str = MCPath_Str + "\\"
             else:
@@ -205,7 +217,7 @@ def ConfigWindowFunc():
     ConfigWindow.configure(background=Config.BG_Colour) # sets bg colour
     ConfigWindow.title("PyMyMC Config") # sets window title
     ConfigWindow.protocol("WM_DELETE_WINDOW", ConfigCloseProtocol)
-    if System == "Windows":
+    if SYSTEM == "Windows":
         #other systems dont use ico
         MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     ConfigWindow.resizable(False, False) #makes the window not resizable
@@ -320,15 +332,18 @@ def Play():
                 PrState = ", non-premuim"
             else:
                 PrState = ""
-            RPC.update(state=f"Playing Minecraft {version}", large_image=Config.LargeImage, small_image=SmallIcon, details=f"Playing as {username}{PrState}")
+            RPC.update(
+                state=f"Playing Minecraft {version}",
+                large_image=Config.LargeImage,
+                small_image=SmallIcon,
+                details=f"Playing as {username}{PrState}"
+            )
 
 
     Email = Username_Entry.get()
     Password = Password_Entry.get()
     Version = ListVariable.get()
-    RememberMe = False
-    if RememberMe_Var.get() == 1:
-        RememberMe = True
+    RememberMe = RememberMe_Var.get() == 1
 
     if not Config.Config["Premium"] or not Config.HasInternet:
         #NonPremium code
@@ -336,9 +351,8 @@ def Play():
             WarningBox("PyMyMC Error!", "Username cannot be empty!")
         else:
             if Config.Config["Premium"]:
-                #code for getting a username rather than email
-                TempName = Email.split("@")
-                Email = TempName[0]
+                # Attempt to make a username out of the email.
+                Email, _ = Email.split("@")
             options = {
                 "username" : Email,
                 "uuid" : str(hashlib.md5(str.encode(Email)).digest()),
@@ -420,7 +434,7 @@ def Play():
 
 def ConfigLoad():
     """Function to load/make new config"""
-    if System == "Windows":
+    if SYSTEM == "Windows":
         MCDir = os.getenv('APPDATA') + "\\.minecraft\\"
     else:
         #I dont know if this will work with macs or not
@@ -478,8 +492,8 @@ def InternetStatus():
     """Checks for a working internet connection"""
     TestURL = "https://1.1.1.1/"
     try:
-        requests.get(TestURL, timeout=5)
-        return True
+        resp = requests.get(TestURL, timeout=1)
+        return resp.status_code == 200
     except requests.ConnectionError:
         return False
 
@@ -503,15 +517,13 @@ def Update():
     """Function ran on every part of the code to make sure everything is right"""
     Config.HasInternet = InternetStatus()
 
-def GetReleases():
+def get_release_list() -> list[MinecraftRelease]:
     """Returns a list of all full mc releases"""
-    Releases = []
-    Lista = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json").json() # gets ALL version info
-    VersionsA = Lista["versions"]
-    for key in VersionsA:
-        if key["type"] == "release":
-            Releases.append(key)
-    return Releases
+    releases_res = requests.get(
+        "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+    ).json()
+    
+    return [ver for ver in releases_res["versions"] if ver["type"] == "release"]
 
 def FormatTime(format="%H:%M:%S"):
     """Formats the current time"""
@@ -526,47 +538,56 @@ def DefaultPresence():
 def PopulateRoot():
     """Populates the fields in this function to make the window show up faster"""
     print("Populating...")
-    if not Config.Config["Premium"]:
-        Username_Label["text"] = "Username:"
-    else:
+    if Config.Config["Premium"]:
         Username_Label["text"] = "Email"
+    else:
+        Username_Label["text"] = "Username:"
     
     #Version list
-    try:
-        #So the launcher still works if internet not here
-        if Config.ShowHistorical:
-            MCVerList = MCLib.utils.get_version_list()
-        else:
-            MCVerList = GetReleases()
-    except Exception:
-        MCVerList = []
-    McVers = []
-
-    # Code for searching for existing versions
-    if path.exists(Config.MinecraftDir+"versions\\"):
-        VersionList = os.listdir(Config.MinecraftDir+"versions\\")
-        for Realistik in VersionList:
-            McVers.append(Realistik)
-
-    for RealistikDash in MCVerList:
-        RealistikDash = RealistikDash["id"]
-        if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
-            if not Config.ShowHistorical and RealistikDash[0] == "b":
-                pass
-            else:
-                McVers.append(RealistikDash)
-
-    McVers = natsorted(McVers)
-    McVers.reverse()
-    McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
+    minecraft_versions = fetch_versions()
+    minecraft_versions.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
     ListVariable = StringVar(MainWindow)
-    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
+    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *minecraft_versions)
     Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
+def fetch_versions() -> list[str]:
+    """Returns a list strings of all the available versions."""
+
+    # Fetch all available releases from Mojang.
+    try:
+        releases = get_release_list()
+    except Exception:
+        log_error("Failed fetching releases from web with error:\n"
+                    + traceback.format_exc())
+        releases = []
+    
+    versions = [release["id"] for release in releases]
+    
+    # Fetch all currently installed versions.
+    version_folders = glob.glob(Config.MinecraftDir + "versions/*/")
+
+    for version_dir in version_folders:
+        # Cursed way to fetch the version name from folder name.
+        version_name = version_dir.split("\\" if SYSTEM == "Windows" else "//")[-2]
+        if version_name not in versions:
+            versions.append(version_name)
+    
+    # Filtering.
+    for version in versions:
+        # Remove betas is show historical is disabled.
+        if (not Config.ShowHistorical) and version[0] == "b":
+            versions.remove(version)
+    
+    # Sorting.
+    versions = natsorted(versions, reverse= True)
+    return versions
+
 #The creation of the main window
 if __name__ == '__main__':
+    log_coloured(ASCII, random.choice(COLOURS))
     if Config.RPCEnable:
+        log_info("Configuring the Discord Rich Presence...")
         RPC = Presence(Config.ClientId)
         RPC.connect()
         DefaultPresence()
@@ -581,7 +602,7 @@ if __name__ == '__main__':
 
     MainWindow.configure(background=Config.BG_Colour) # sets bg colour
     MainWindow.title("PyMyMC") # sets window title
-    if System == "Windows":
+    if SYSTEM == "Windows":
         #other systems dont use ico
         MainWindow.iconbitmap(Path.Logo_Icon) # sets window icon
     MainWindow.resizable(False, False) #makes the window not resizable
@@ -650,39 +671,11 @@ if __name__ == '__main__':
     Download_Progress = ttk.Progressbar(MainWindow, length=Config.BarLen)
     Download_Progress.grid(row=12, column=0)
 
-    PopulateThread = Thread(target=PopulateRoot)
-    #PopulateThread.start()
-    if True:
-        #i broke something
-        try:
-            #So the launcher still works if internet not here
-            if Config.ShowHistorical:
-                MCVerList = MCLib.utils.get_version_list()
-            else:
-                MCVerList = GetReleases()
-        except Exception:
-            MCVerList = []
-        McVers = []
-
-        # Code for searching for existing versions
-        if path.exists(Config.MinecraftDir+"versions\\"):
-            VersionList = os.listdir(Config.MinecraftDir+"versions\\")
-            for Realistik in VersionList:
-                McVers.append(Realistik)
-
-        for RealistikDash in MCVerList:
-            RealistikDash = RealistikDash["id"]
-            if "w" not in RealistikDash and "pre" not in RealistikDash and "Pre-Release" not in RealistikDash and "Pre1" not in RealistikDash and RealistikDash not in McVers: #gets rid of snapshots and pre-releases
-                if not Config.ShowHistorical and RealistikDash[0] == "b":
-                    pass
-                else:
-                    McVers.append(RealistikDash)
-
-        McVers = natsorted(McVers)
-        McVers.reverse()
-        McVers.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
-        ListVariable = StringVar(MainWindow)
-        Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *McVers)
-        Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
-        Ver_List.grid(row=10, column=0, sticky=W)
+    minecraft_versions = fetch_versions()
+    minecraft_versions.insert(0, Config.Config["LastSelected"]) #using a bug in ttk to our advantage
+    ListVariable = StringVar(MainWindow)
+    Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *minecraft_versions)
+    Ver_List.configure(width=Config.ListLen) #only way i found of maintaining same width
+    Ver_List.grid(row=10, column=0, sticky=W)
+    
     MainWindow.mainloop()
