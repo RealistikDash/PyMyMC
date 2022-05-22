@@ -567,7 +567,7 @@ def fetch_versions() -> list[str]:
 
     for version_dir in version_folders:
         # Cursed way to fetch the version name from folder name.
-        version_name = version_dir.split("\\" if SYSTEM == "Windows" else "//")[-2]
+        version_name = version_dir.split("\\" if SYSTEM == "Windows" else "/")[-2]
         if version_name not in versions:
             versions.append(version_name)
     
