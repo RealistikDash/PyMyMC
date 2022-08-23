@@ -1,4 +1,3 @@
-# RealistikDash here, just be careful and wear eye protection while looking at this
 from __future__ import annotations
 
 import glob
@@ -12,9 +11,15 @@ import subprocess
 import traceback
 from datetime import datetime
 from threading import Thread
-from tkinter import *
+from tkinter import E
+from tkinter import IntVar
+from tkinter import Label
 from tkinter import messagebox
+from tkinter import PhotoImage
+from tkinter import StringVar
+from tkinter import Toplevel
 from tkinter import ttk
+from tkinter import W
 
 import minecraft_launcher_lib as MCLib
 import requests
@@ -24,6 +29,7 @@ from natsort import natsorted
 from pypresence import Presence
 from ttkthemes import ThemedTk
 
+import constants
 from _typing import (
     MinecraftRelease,
 )
@@ -56,45 +62,8 @@ class Config:
     Version = "0.1.8MC"
     MinecraftDir = ""
 
-    BG_Colour = "#2F3136"
-    FG_Colour = "#2c3e50"
-    Theme = "equilux"
-
     HasInternet = True
     ShowHistorical = False
-
-    # Discord Rich Presence Settings
-    RPCEnable = False
-    ClientId = "673338815301287966"
-    LargeImage = "pymymc_logo"
-    ConfigImage = "config"
-    RootImage = "main"
-    VanillaImage = "vanilla"
-    ModdedImage = "modded"
-
-    # More advanced options
-    # If set to true, the System ver will be set to "Linux" to help test things. That variable is used by PyMyMC
-    # to check what OS the user is using (eg Windows, Linux, MacOS/Darwin)
-    FakeLinux = False
-    if FakeLinux:
-        # done in the class so the later on code isnt broken
-        global SYSTEM
-        SYSTEM = "Linux"
-
-    # GUI properties for different systems
-    ## On some systems (namely linux) widget size would be way different than on my
-    ## development environment (Windows) so this part of the code makes sure things
-    ## look at least similar on most major systems.
-    if SYSTEM == "Windows":
-        BoxWidth = 10
-        EntryLen = 40
-        BarLen = 245
-        ListLen = 15
-    else:
-        BoxWidth = 7
-        EntryLen = 30
-        BarLen = 245
-        ListLen = 8
 
 
 def save_config() -> None:
@@ -102,16 +71,6 @@ def save_config() -> None:
 
     with open("config.json", "w") as f:
         json.dump(Config.Config, f, indent=4)
-
-
-class Path:
-    # class to store file paths, made for easy and quick changes
-    if SYSTEM == "Windows":
-        Logo_Small = "img\\pymymc_logo_small.png"
-        Logo_Icon = "img\\pymymc_ico.ico"
-    else:
-        Logo_Small = "img/pymymc_logo_small.png"
-        Logo_Icon = "img/pymymc_logo_small.png"
 
 
 def log_coloured(content: str, colour: str) -> None:
@@ -238,34 +197,34 @@ def ConfigWindowFunc():
             )
 
     # Discord Rich Presence Update
-    if Config.RPCEnable:
+    if constants.rpc.ENABLED:
         RPC.update(
             state="Configuring things...",
-            small_image=Config.ConfigImage,
-            large_image=Config.LargeImage,
+            small_image=constants.rpc.CONFIG_IMAGE,
+            large_image=constants.rpc.LARGE_IMAGE,
         )
     # Initial window settings
     ConfigWindow = Toplevel(MainWindow)
-    ConfigWindow.configure(background=Config.BG_Colour)  # sets bg colour
+    ConfigWindow.configure(background=constants.ui.BG_COLOUR)  # sets bg colour
     ConfigWindow.title("PyMyMC Config")  # sets window title
     ConfigWindow.protocol("WM_DELETE_WINDOW", ConfigCloseProtocol)
     if SYSTEM == "Windows":
         # other systems dont use ico
-        MainWindow.iconbitmap(Path.Logo_Icon)  # sets window icon
+        MainWindow.iconbitmap(constants.ui.LOGO_ICON)  # sets window icon
     ConfigWindow.resizable(False, False)  # makes the window not resizable
 
     # WarningLabel
     Warning_Label = Label(
         ConfigWindow,
         text="Warning! These options are for advanced users only!",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 12",
     )
     Warning2_Label = Label(
         ConfigWindow,
         text="Proceed with caution!",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="yellow",
         font="none 12 bold",
     )
@@ -276,7 +235,7 @@ def ConfigWindowFunc():
     MCPath_Label = Label(
         ConfigWindow,
         text="Minecraft Path:",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 11",
     )
@@ -292,7 +251,7 @@ def ConfigWindowFunc():
     DRAM_Label = Label(
         ConfigWindow,
         text="JVM Dedicated RAM:",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 11",
     )
@@ -307,7 +266,7 @@ def ConfigWindowFunc():
     GB_Label = Label(
         ConfigWindow,
         text="GB",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 9",
     )
@@ -348,7 +307,7 @@ def ConfigWindowFunc():
     Apply_Button = ttk.Button(
         ConfigWindow,
         text="Apply",
-        width=Config.BoxWidth,
+        width=constants.ui.BOX_WIDTH,
         command=SaveConfig,
     )
     Apply_Button.grid(row=9, column=0, sticky=W)
@@ -357,7 +316,7 @@ def ConfigWindowFunc():
     Cancel_Button = ttk.Button(
         ConfigWindow,
         text="Cancel",
-        width=Config.BoxWidth,
+        width=constants.ui.BOX_WIDTH,
         command=ConfigWindow.destroy,
     )
     Cancel_Button.grid(row=9, column=0, sticky=E)
@@ -410,7 +369,7 @@ def Play():
     def PlayRPCUpdate(version, username, isPremium):
         """Updates the rich presence so i dont have to copy and paste the same code on premium and nonpremium"""
         # Checks if the user is playing vanilla mc or modded for RPC icon
-        if Config.RPCEnable:
+        if constants.rpc.ENABLED:
             IsVanilla = True
             MCVerList = MCLib.utils.get_version_list()
             VerList = []
@@ -421,9 +380,9 @@ def Play():
             else:
                 IsVanilla = False
             if IsVanilla:
-                SmallIcon = Config.VanillaImage
+                SmallIcon = constants.rpc.VANILLA_IMAGE
             else:
-                SmallIcon = Config.ModdedImage
+                SmallIcon = constants.rpc.MODDED_IMAGE
 
             # Details text
             if not isPremium:
@@ -432,7 +391,7 @@ def Play():
                 PrState = ""
             RPC.update(
                 state=f"Playing Minecraft {version}",
-                large_image=Config.LargeImage,
+                large_image=constants.rpc.LARGE_IMAGE,
                 small_image=SmallIcon,
                 details=f"Playing as {username}{PrState}",
             )
@@ -591,11 +550,11 @@ def FormatTime(format="%H:%M:%S") -> str:
 
 def DefaultPresence():
     """Sets the default presence"""
-    if Config.RPCEnable:
+    if constants.rpc.ENABLED:
         RPC.update(
             state="In the main menu.",
-            large_image=Config.LargeImage,
-            small_image=Config.RootImage,
+            large_image=constants.rpc.LARGE_IMAGE,
+            small_image=constants.rpc.ROOT_IMAGE,
         )
 
 
@@ -660,29 +619,33 @@ if __name__ == "__main__":
     log_coloured(ASCII, random.choice(COLOURS))
     log_info("Checking internet status...")
     ConfigLoad()
-    if Config.RPCEnable:
+    if constants.rpc.ENABLED:
         log_info("Configuring the Discord Rich Presence...")
-        RPC = Presence(Config.ClientId)
+        RPC = Presence(constants.rpc.CLIENT_ID)
         RPC.connect()
         DefaultPresence()
     log_info("Loading themes...")
-    MainWindow = ThemedTk(theme=Config.Theme)
+    MainWindow = ThemedTk(theme=constants.ui.THEME)
     # Styles
     log_info("Configuring the UI...")
     s = ttk.Style()
     s.configure(
         "TButton",
-        background=Config.FG_Colour,
-        fieldbackground=Config.FG_Colour,
+        background=constants.ui.FG_COLOUR,
+        fieldbackground=constants.ui.FG_COLOUR,
     )
-    s.configure("TCheckbutton", background=Config.BG_Colour, foreground="white")
-    s.configure("TEntry", fieldbackground=Config.FG_Colour, background=Config.FG_Colour)
+    s.configure("TCheckbutton", background=constants.ui.BG_COLOUR, foreground="white")
+    s.configure(
+        "TEntry",
+        fieldbackground=constants.ui.FG_COLOUR,
+        background=constants.ui.FG_COLOUR,
+    )
 
-    MainWindow.configure(background=Config.BG_Colour)  # sets bg colour
+    MainWindow.configure(background=constants.ui.BG_COLOUR)  # sets bg colour
     MainWindow.title("PyMyMC")  # sets window title
     if SYSTEM == "Windows":
         # other systems dont use ico
-        MainWindow.iconbitmap(Path.Logo_Icon)  # sets window icon
+        MainWindow.iconbitmap(constants.ui.LOGO_ICON)  # sets window icon
     MainWindow.resizable(False, False)  # makes the window not resizable
     MainWindow.protocol(
         "WM_DELETE_WINDOW",
@@ -690,7 +653,7 @@ if __name__ == "__main__":
     )  # runs the function when the user presses the X button
 
     # Logo Image
-    PyMyMC_Logo = PhotoImage(file=Path.Logo_Small)
+    PyMyMC_Logo = PhotoImage(file=constants.ui.LOGO_SMALL)
     PyMyMC_Logo_Label = Label(MainWindow, image=PyMyMC_Logo)
     PyMyMC_Logo_Label["bg"] = PyMyMC_Logo_Label.master["bg"]
     PyMyMC_Logo_Label.grid(row=0, column=0)
@@ -699,14 +662,14 @@ if __name__ == "__main__":
     PInfo_Label = Label(
         MainWindow,
         text=f"PyMyMC {Config.Version}",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="Arial 15 bold",
     )
     PInfo2_Label = Label(
         MainWindow,
         text="Made by RealistikDash",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 13",
     )
@@ -717,7 +680,7 @@ if __name__ == "__main__":
     Username_Label = Label(
         MainWindow,
         text="Email:",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 12",
     )
@@ -727,7 +690,7 @@ if __name__ == "__main__":
     US_EntryText = StringVar()  #
     Username_Entry = ttk.Entry(
         MainWindow,
-        width=Config.EntryLen,
+        width=constants.ui.ENTRY_LEN,
         textvariable=US_EntryText,
     )
     US_EntryText.set(Config.Config["Email"])  # inserts config email here
@@ -737,21 +700,21 @@ if __name__ == "__main__":
     Password_Label = Label(
         MainWindow,
         text="Password:",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 12",
     )
     Password_Label.grid(row=7, column=0, sticky=W)
 
     # Password Entry
-    Password_Entry = ttk.Entry(MainWindow, width=Config.EntryLen, show="*")
+    Password_Entry = ttk.Entry(MainWindow, width=constants.ui.ENTRY_LEN, show="*")
     Password_Entry.grid(row=8, column=0, sticky=W)
 
     # Play Button
     Play_Button = ttk.Button(
         MainWindow,
         text="Play!",
-        width=Config.BoxWidth,
+        width=constants.ui.BOX_WIDTH,
         command=Play,
     )
     Play_Button.grid(row=11, column=0, sticky=W)
@@ -760,7 +723,7 @@ if __name__ == "__main__":
     Install_Button = ttk.Button(
         MainWindow,
         text="Download!",
-        width=Config.BoxWidth,
+        width=constants.ui.BOX_WIDTH,
         command=Install,
     )
     Install_Button.grid(row=11, column=0, sticky=E)
@@ -769,7 +732,7 @@ if __name__ == "__main__":
     Version_Label = Label(
         MainWindow,
         text="Version:",
-        bg=Config.BG_Colour,
+        bg=constants.ui.BG_COLOUR,
         fg="white",
         font="none 12",
     )
@@ -781,7 +744,7 @@ if __name__ == "__main__":
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *Empty)
     Ver_List.configure(
-        width=Config.ListLen,
+        width=constants.ui.LIST_LEN,
     )  # only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
@@ -789,7 +752,7 @@ if __name__ == "__main__":
     Config_Button = ttk.Button(
         MainWindow,
         text="Config",
-        width=Config.BoxWidth,
+        width=constants.ui.BOX_WIDTH,
         command=ConfigWindowFunc,
     )
     Config_Button.grid(row=11, column=0)
@@ -804,7 +767,7 @@ if __name__ == "__main__":
     RememberMe_Checkbox.grid(row=10, column=0, sticky=E)
 
     # Download Progress Bar
-    Download_Progress = ttk.Progressbar(MainWindow, length=Config.BarLen)
+    Download_Progress = ttk.Progressbar(MainWindow, length=constants.ui.BAR_LEN)
     Download_Progress.grid(row=12, column=0)
 
     minecraft_versions = fetch_versions()
@@ -815,7 +778,7 @@ if __name__ == "__main__":
     ListVariable = StringVar(MainWindow)
     Ver_List = ttk.OptionMenu(MainWindow, ListVariable, *minecraft_versions)
     Ver_List.configure(
-        width=Config.ListLen,
+        width=constants.ui.LIST_LEN,
     )  # only way i found of maintaining same width
     Ver_List.grid(row=10, column=0, sticky=W)
 
