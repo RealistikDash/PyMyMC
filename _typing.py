@@ -1,14 +1,11 @@
-from typing import (
-    TypedDict,
-    Union,
-    Literal,
-)
+from __future__ import annotations
 
-VERSION_TYPES = Literal[
-    "snapshot",
-    "release",
-    "old_beta"
-]
+from typing import Literal
+from typing import TypedDict
+from typing import Union
+
+VERSION_TYPES = Literal["snapshot", "release", "old_beta"]
+
 
 class MinecraftRelease(TypedDict):
     """Typing for a Minecraft version manifest JSON resposne."""
