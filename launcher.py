@@ -335,88 +335,34 @@ def Play():
     Version = ListVariable.get()
     RememberMe = RememberMe_Var.get() == 1
 
-    if not Config.Config["Premium"] or not Config.HasInternet:
-        #NonPremium code
-        if Email == "":
-            WarningBox("PyMyMC Error!", "Username cannot be empty!")
-        else:
-            if Config.Config["Premium"]:
-                # Attempt to make a username out of the email.
-                Email, _ = Email.split("@")
-            options = {
-                "username" : Email,
-                "uuid" : str(hashlib.md5(str.encode(Email)).digest()),
-                "token" : "",
-                "launcherName": "PyMyMC",
-                "gameDirectory": Config.MinecraftDir,
-                "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
-            }
+    #NonPremium code
+    if Email == "":
+        WarningBox("PyMyMC Error!", "Username cannot be empty!")
+    else:
+        if Config.Config["Premium"]:
+            # Attempt to make a username out of the email.
+            Email, _ = Email.split("@")
+        options = {
+            "username" : Email,
+            "uuid" : str(hashlib.md5(str.encode(Email)).digest()),
+            "token" : "",
+            "launcherName": "PyMyMC",
+            "gameDirectory": Config.MinecraftDir,
+            "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
+        }
 
-            if RememberMe:
-                Config.Config["Email"] = Email
+        if RememberMe:
+            Config.Config["Email"] = Email
 
-            Config.Config["LastSelected"] = Version
-            save_config()
-            
-            Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
-            MainWindow.destroy()
-            PlayRPCUpdate(Version, Email, False)
-            
-            subprocess.call(Command)
-            #MessageBox("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
-
-    if Config.Config["Premium"] and Config.HasInternet:
-        if Email == "":
-            ErrorBox("PyMyMC Error!", "Username cannot be empty!")
-        elif Password == "" and Email != Config.Config["Email"]:
-            ErrorBox("PyMyMC Error!", "Password cannot be empty!")
-        else:
-            if Email != Config.Config["Email"] or Config.Config["UUID"] == "" or Config.Config["AccessToken"] == "":
-                AccountInfo = MCLib.account.login_user(Email, Password) # so it doesnt do it with the __useuuid__PyMyMC__ password
-                UsingPassword = True
-            else:
-                AccountInfo = {} #so i dont have to make 2 different checks for errors
-                UsingPassword = False
-
-            if "error" in list(AccountInfo.keys()):
-                ErrorBox("PyMyMC Error!", AccountInfo["errorMessage"])
-            else:
-                if UsingPassword:
-                    AccessToken = AccountInfo["accessToken"]
-                    Username = AccountInfo["selectedProfile"]["name"]
-                    Uuid = AccountInfo["selectedProfile"]["id"]
-                else:
-                    #grabs from the config
-                    AccessToken = Config.Config["AccessToken"]
-                    Username = Config.Config["Username"]
-                    Uuid = Config.Config["UUID"]
-
-                MinecraftFound = os.path.exists(Config.MinecraftDir+f"versions\\{Version}\\")
-
-                if MinecraftFound:
-                    options = {
-                        "username" : Username,
-                        "uuid" : Uuid,
-                        "token" : AccessToken,
-
-                        "launcherName": "PyMyMC",
-                        "gameDirectory": Config.MinecraftDir,
-                        "jvmArguments" : [f"-Xmx{Config.Config['JVMRAM']}G"]
-                    }
-                    Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
-                    MainWindow.destroy()
-                    if RememberMe:
-                        Config.Config["Email"] = Email
-                        Config.Config["AccessToken"] = AccessToken
-                        Config.Config["UUID"] = Uuid
-                        Config.Config["Username"] = Username
-                    Config.Config["LastSelected"] = Version
-                    PlayRPCUpdate(Version, Username, True)
-                    save_config()
-                    subprocess.call(Command)
-                    #MessageBox("PyMyMC", "Thank you for using PyMyMC!")
-                else:
-                    Install(True)
+        Config.Config["LastSelected"] = Version
+        save_config()
+        
+        Command = MCLib.command.get_minecraft_command(Version, Config.MinecraftDir, options)
+        MainWindow.destroy()
+        PlayRPCUpdate(Version, Email, False)
+        
+        subprocess.call(Command)
+        #MessageBox("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
 
 if SYSTEM == "Windows":
     MC_DIR = os.getenv('APPDATA') + "\\.minecraft\\"
