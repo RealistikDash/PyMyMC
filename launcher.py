@@ -83,22 +83,22 @@ def log_coloured(content: str, colour: str) -> None:
 def log_info(content: str) -> None:
     """Logs `content` to console with the severity `INFO`."""
 
-    log_coloured(f"[{FormatTime()}] {content}", Fore.BLUE)
+    log_coloured(f"[{format_time()}] {content}", Fore.BLUE)
 
 
 def log_warning(content: str) -> None:
     """Logs `content` to console with the severity `WARNING`."""
 
-    log_coloured(f"[{FormatTime()}] {content}", Fore.YELLOW)
+    log_coloured(f"[{format_time()}] {content}", Fore.YELLOW)
 
 
 def log_error(content: str) -> None:
     """Logs `content` to console with the severity `ERROR`."""
 
-    log_coloured(f"[{FormatTime()}] {content}", Fore.RED)
+    log_coloured(f"[{format_time()}] {content}", Fore.RED)
 
 
-def MessageBox(title, content):
+def message_box(title, content):
     """Creates a message box"""
     # MsgThread = Thread(target=ctypes.windll.user32.MessageBoxW, args=(0, content, title, style,))
     # MsgThread.start() #non blocking?
@@ -113,7 +113,7 @@ def MessageBox(title, content):
     log_info(content)
 
 
-def ErrorBox(title, content):
+def error_box(title, content):
     """Creates an error dialogue box"""
     MsgThread = Thread(
         target=messagebox.showerror,
@@ -126,7 +126,7 @@ def ErrorBox(title, content):
     log_error(content)
 
 
-def WarningBox(title, content):
+def warning_box(title, content):
     """Creater a warning dialogue box"""
     MsgThread = Thread(
         target=messagebox.showwarning,
@@ -139,14 +139,14 @@ def WarningBox(title, content):
     log_warning(content)
 
 
-def ConfigWindowFunc():
+def config_window():
     """Creates an advanced config window"""
     # i know this is not supposed to be how you do it but "it just works"
 
     def ConfigCloseProtocol():
         """Function ran when the config window is closed"""
         ConfigWindow.destroy()
-        DefaultPresence()
+        set_default_presence()
 
     def SaveConfig():
         MCPath_Str = MCPath_StringVar.get()
@@ -186,12 +186,12 @@ def ConfigWindowFunc():
                 Config.Config["OnlyReleases"] = False
             Config.Config["MinecraftDir"] = MCPath_Str
             save_config()
-            ConfigLoad()  # runs config update
+            config_load()  # runs config update
             ConfigWindow.destroy()
-            PopulateRoot()
+            populate_root()
 
         else:
-            ErrorBox(
+            error_box(
                 "PyMyMC Error!",
                 "The RAM value has to be an integer (full number) over 0.",
             )
@@ -322,30 +322,33 @@ def ConfigWindowFunc():
     Cancel_Button.grid(row=9, column=0, sticky=E)
 
 
-def Install(PlayAfter=False):
+def install(PlayAfter=False):
     """Installs minecraft"""
     # Version = "1.14.4" #later change it into a gui list # i did
     Version = ListVariable.get()
 
     MinecraftFound = os.path.exists(Config.MinecraftDir + f"versions\\{Version}\\")
     if MinecraftFound:
-        MessageBox(
+        message_box(
             "PyMyMC Info!",
             "This version is already installed! Press play to play it!",
         )
 
     elif not Config.HasInternet:
-        ErrorBox("PyMyMC Error!", "An internet connection is required for this action!")
+        error_box(
+            "PyMyMC Error!",
+            "An internet connection is required for this action!",
+        )
 
     else:
-        MessageBox(
+        message_box(
             "PyMyMC Info!",
             "Downloading started! If you pressed play to download, the program will freeze.",
         )
         callback = {
-            "setStatus": SetStatusHandler,
-            "setProgress": SetProgressHandler,
-            "setMax": SetMaxHandler,
+            "setStatus": set_status_handler,
+            "setProgress": set_progress_handler,
+            "setMax": set_max_handler,
         }
         # MCLib.install.install_minecraft_version(Version, Config.MinecraftDir, callback=callback)
         DlThread = Thread(
@@ -359,11 +362,11 @@ def Install(PlayAfter=False):
         DlThread.start()
         if PlayAfter:
             DlThread.join()
-            Play()
+            play()
 
 
 # TODO: Rewrite
-def Play():
+def play():
     """Function that is done when the play button is pressed"""
     # Note 25/12/19 | Deal with sessions expiring
     def PlayRPCUpdate(version, username, isPremium):
@@ -403,7 +406,7 @@ def Play():
 
     # NonPremium code
     if Email == "":
-        WarningBox("PyMyMC Error!", "Username cannot be empty!")
+        warning_box("PyMyMC Error!", "Username cannot be empty!")
     else:
         if Config.Config["Premium"]:
             # Attempt to make a username out of the email.
@@ -432,7 +435,7 @@ def Play():
         PlayRPCUpdate(Version, Email, False)
 
         subprocess.call(Command)
-        # MessageBox("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
+        # message_box("PyMyMC", "Thank you for using PyMyMC!") #Temporarily disabled as it would create an empty tk window
 
 
 if SYSTEM == "Windows":
@@ -454,7 +457,7 @@ EXAMPLE_CONFIG = {
 }
 
 # TODO: Full rewrite.
-def ConfigLoad():
+def config_load():
     """Function to load/make new config"""
     # JSONConfig = JsonFile.GetDict("config.json")
     # if JSONConfig == {}:
@@ -515,22 +518,22 @@ def check_internet() -> bool:
         return False
 
 
-def ExitHandler():
+def exit_handler():
     """Function ran on the closing of the tk mainwindow"""
     MainWindow.destroy()
     exit()
 
 
-def SetStatusHandler(status):
+def set_status_handler(status):
     Download_Progress["value"] = 0
     print(status)
 
 
-def SetProgressHandler(status):
+def set_progress_handler(status):
     Download_Progress["value"] = int(status)
 
 
-def SetMaxHandler(status):
+def set_max_handler(status):
     Download_Progress["maximum"] = int(status)
 
 
@@ -543,12 +546,12 @@ def get_release_list() -> list[MinecraftRelease]:
     return [ver for ver in releases_res["versions"] if ver["type"] == "release"]
 
 
-def FormatTime(format="%H:%M:%S") -> str:
+def format_time(format="%H:%M:%S") -> str:
     """Formats the current time"""
     return datetime.now().strftime(format)
 
 
-def DefaultPresence():
+def set_default_presence():
     """Sets the default presence"""
     if constants.rpc.ENABLED:
         RPC.update(
@@ -558,7 +561,7 @@ def DefaultPresence():
         )
 
 
-def PopulateRoot():
+def populate_root():
     """Populates the fields in this function to make the window show up faster"""
     print("Populating...")
     if Config.Config["Premium"]:
@@ -618,12 +621,12 @@ def fetch_versions() -> list[str]:
 if __name__ == "__main__":
     log_coloured(ASCII, random.choice(COLOURS))
     log_info("Checking internet status...")
-    ConfigLoad()
+    config_load()
     if constants.rpc.ENABLED:
         log_info("Configuring the Discord Rich Presence...")
         RPC = Presence(constants.rpc.CLIENT_ID)
         RPC.connect()
-        DefaultPresence()
+        set_default_presence()
     log_info("Loading themes...")
     MainWindow = ThemedTk(theme=constants.ui.THEME)
     # Styles
@@ -649,7 +652,7 @@ if __name__ == "__main__":
     MainWindow.resizable(False, False)  # makes the window not resizable
     MainWindow.protocol(
         "WM_DELETE_WINDOW",
-        ExitHandler,
+        exit_handler,
     )  # runs the function when the user presses the X button
 
     # Logo Image
@@ -715,7 +718,7 @@ if __name__ == "__main__":
         MainWindow,
         text="Play!",
         width=constants.ui.BOX_WIDTH,
-        command=Play,
+        command=play,
     )
     Play_Button.grid(row=11, column=0, sticky=W)
 
@@ -724,7 +727,7 @@ if __name__ == "__main__":
         MainWindow,
         text="Download!",
         width=constants.ui.BOX_WIDTH,
-        command=Install,
+        command=install,
     )
     Install_Button.grid(row=11, column=0, sticky=E)
 
@@ -753,7 +756,7 @@ if __name__ == "__main__":
         MainWindow,
         text="Config",
         width=constants.ui.BOX_WIDTH,
-        command=ConfigWindowFunc,
+        command=config_window,
     )
     Config_Button.grid(row=11, column=0)
 
