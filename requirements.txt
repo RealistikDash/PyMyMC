@@ -1,6 +1,5 @@
 colorama
 minecraft_launcher_lib
-#I am planning on splitting this later into requirements and optionals. Optionals are below this map
 natsort==6.2.0
 pypresence
 requests

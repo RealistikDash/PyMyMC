@@ -22,13 +22,11 @@ This launcher allows you to access *some* of the features the normal Minecraft l
 
 - Selecting Minecraft versions
 
-- Logging into Minecraft and Mojang account
-
 - Multiplayer support
 
 - Very lightweight
 
-- Non Premium support
+- Non-Premium support
 
 Here are the features planned for the near future:
 
@@ -39,8 +37,3 @@ Here are the features planned for the near future:
 - Fix remember me tokens expiring
 
 - Rewrite everything lmao
-
-# Key
-Sometimes you will see certain letter combos that were created by me. Here is what they mean:
-
-- MC (in version numbers) means that is not the full, finalised version. Further commits will come to finish and fix things.
