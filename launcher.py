@@ -20,6 +20,8 @@ from tkinter import StringVar
 from tkinter import Toplevel
 from tkinter import ttk
 from tkinter import W
+from typing import Literal
+from typing import TypedDict
 
 import minecraft_launcher_lib as MCLib
 import requests
@@ -30,9 +32,6 @@ from pypresence import Presence
 from ttkthemes import ThemedTk
 
 import constants
-from _typing import (
-    MinecraftRelease,
-)
 
 ASCII = r""" _____       __  __       __  __  _____
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -53,6 +52,19 @@ COLOURS = (
     Fore.GREEN,
 )
 SYSTEM = platform.system()
+
+
+VersionTypes = Literal["snapshot", "release", "old_beta"]
+
+
+class MinecraftRelease(TypedDict):
+    """Typing for a Minecraft version manifest JSON resposne."""
+
+    id: str
+    type: VersionTypes
+    url: str
+    time: str
+    releaseTime: str
 
 
 class Config:
