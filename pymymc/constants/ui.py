@@ -1,22 +1,16 @@
 from __future__ import annotations
 
 import os
-import platform
 
 BG_COLOUR = "#2F3136"
 FG_COLOUR = "#2c3e50"
-THEME = "equilux"
-
-if platform.system() == "Windows":
-    BOX_WIDTH = 10
-    ENTRY_LEN = 40
-    BAR_LEN = 245
-    LIST_LEN = 15
-else:
-    BOX_WIDTH = 7
-    ENTRY_LEN = 30
-    BAR_LEN = 245
-    LIST_LEN = 8
+ACCENT_COLOUR = "#7289DA"
+TEXT_COLOUR = "#FFFFFF"
+TEXT_MUTED = "#B9BBBE"
+INPUT_BG = "#40444B"
+INPUT_BORDER = "#202225"
+BUTTON_HOVER = "#677BC4"
+WARNING_COLOUR = "#FAA61A"
 
 _RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
 LOGO_SMALL = os.path.join(_RESOURCES_DIR, "pymymc_logo_small.png")

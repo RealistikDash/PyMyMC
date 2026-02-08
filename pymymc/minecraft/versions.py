@@ -21,8 +21,7 @@ def build_version_list(
         versions = provider.get_release_ids()
     except Exception:
         log_error(
-            "Failed fetching releases from web with error:\n"
-            + traceback.format_exc(),
+            "Failed fetching releases from web with error:\n" + traceback.format_exc(),
         )
         versions = []
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 
-import requests
 import minecraft_launcher_lib
+import requests
 
 from pymymc.minecraft.ports import InstallCallbacks
 
@@ -46,5 +46,7 @@ class MCLibAdapter:
         options: dict,
     ) -> list[str]:
         return minecraft_launcher_lib.command.get_minecraft_command(
-            version, minecraft_dir, options
+            version,
+            minecraft_dir,
+            options,
         )

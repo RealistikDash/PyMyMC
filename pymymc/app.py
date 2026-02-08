@@ -17,7 +17,7 @@ from pymymc.log import print_banner
 from pymymc.minecraft.versions import build_version_list
 from pymymc.services.discord import DiscordRPC
 
-APP_VERSION = "0.1.8MC"
+APP_VERSION = "0.2.0"
 
 
 class InstallResult(Enum):
