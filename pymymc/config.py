@@ -20,10 +20,16 @@ class AppConfig:
     email: str = ""
     uuid: str = ""
     access_token: str = ""
-    jvm_ram: int = 2
     premium: bool = True
     last_selected: str = "1.15.1"
     only_releases: bool = True
+    java_path: str = ""
+    custom_resolution: bool = False
+    resolution_width: int = 854
+    resolution_height: int = 480
+    jvm_args: str = "-Xmx2G"
+    auto_connect_server: str = ""
+    auto_connect_port: int = 25565
 
     @property
     def show_historical(self) -> bool:
@@ -35,10 +41,16 @@ _KEY_MAP = {
     "Email": "email",
     "UUID": "uuid",
     "AccessToken": "access_token",
-    "JVMRAM": "jvm_ram",
     "Premium": "premium",
     "LastSelected": "last_selected",
     "OnlyReleases": "only_releases",
+    "JavaPath": "java_path",
+    "CustomResolution": "custom_resolution",
+    "ResolutionWidth": "resolution_width",
+    "ResolutionHeight": "resolution_height",
+    "JVMArgs": "jvm_args",
+    "AutoConnectServer": "auto_connect_server",
+    "AutoConnectPort": "auto_connect_port",
 }
 _REVERSE_KEY_MAP = {v: k for k, v in _KEY_MAP.items()}
 
@@ -65,6 +77,11 @@ class ConfigManager:
         kwargs = {}
         for json_key, field_name in _KEY_MAP.items():
             kwargs[field_name] = raw.get(json_key, getattr(defaults, field_name))
+
+        # Migrate legacy JVMRAM into JVMArgs
+        if "JVMRAM" in raw and "JVMArgs" not in raw:
+            ram = raw["JVMRAM"]
+            kwargs["jvm_args"] = f"-Xmx{ram}G"
 
         config = AppConfig(**kwargs)
         self.save(config)

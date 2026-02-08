@@ -2,5 +2,5 @@ colorama
 minecraft_launcher_lib
 natsort==6.2.0
 pypresence
+PyQt5
 requests
-ttkthemes

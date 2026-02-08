@@ -14,10 +14,11 @@ from pymymc.config import AppConfig
 from pymymc.config import ConfigManager
 from pymymc.log import log_info
 from pymymc.log import print_banner
-from pymymc.minecraft.versions import build_version_list
+from pymymc.minecraft.versions import get_available_versions
+from pymymc.minecraft.versions import get_installed_versions
 from pymymc.services.discord import DiscordRPC
 
-APP_VERSION = "0.1.8MC"
+APP_VERSION = "0.2.0"
 
 
 class InstallResult(Enum):
@@ -31,6 +32,7 @@ class ProgressCallbacks:
         self.on_status: Callable[[str], None] = lambda s: print(s)
         self.on_progress: Callable[[int], None] = lambda v: None
         self.on_max: Callable[[int], None] = lambda m: None
+        self.on_complete: Callable[[], None] = lambda: None
 
     def set_status(self, status: str) -> None:
         self.on_status(status)
@@ -40,6 +42,9 @@ class ProgressCallbacks:
 
     def set_max(self, maximum: int) -> None:
         self.on_max(maximum)
+
+    def set_complete(self) -> None:
+        self.on_complete()
 
 
 class App:
@@ -65,11 +70,10 @@ class App:
         self._ui_refresh = callback
 
     def get_versions(self) -> list[str]:
-        return build_version_list(
-            self._minecraft,
-            self.config.minecraft_dir,
-            self.config.show_historical,
-        )
+        return get_installed_versions(self.config.minecraft_dir)
+
+    def get_available_versions(self, releases_only: bool) -> list[str]:
+        return get_available_versions(self._minecraft, releases_only)
 
     def save_config(self) -> None:
         self._config_manager.save(self.config)
@@ -84,11 +88,19 @@ class App:
         if not self.has_internet:
             return InstallResult.NO_INTERNET
 
-        Thread(
-            target=self._minecraft.install,
-            args=(version, self.config.minecraft_dir, self.install_callbacks),
-        ).start()
+        def _run() -> None:
+            self._minecraft.install(
+                version,
+                self.config.minecraft_dir,
+                self.install_callbacks,
+            )
+            self.install_callbacks.set_complete()
+
+        Thread(target=_run).start()
         return InstallResult.DOWNLOADING
+
+    def uninstall(self, version: str) -> None:
+        self._minecraft.uninstall(version, self.config.minecraft_dir)
 
     def play(
         self,
@@ -108,8 +120,20 @@ class App:
             "token": "",
             "launcherName": "PyMyMC",
             "gameDirectory": config.minecraft_dir,
-            "jvmArguments": [f"-Xmx{config.jvm_ram}G"],
+            "jvmArguments": config.jvm_args.split(),
         }
+
+        if config.java_path:
+            options["executablePath"] = config.java_path
+
+        if config.custom_resolution:
+            options["customResolution"] = True
+            options["resolutionWidth"] = str(config.resolution_width)
+            options["resolutionHeight"] = str(config.resolution_height)
+
+        if config.auto_connect_server:
+            options["server"] = config.auto_connect_server
+            options["port"] = str(config.auto_connect_port)
 
         if remember_me:
             config.email = username

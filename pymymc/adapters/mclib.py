@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import os
+import shutil
 
-import requests
 import minecraft_launcher_lib
+import requests
 
 from pymymc.minecraft.ports import InstallCallbacks
 
@@ -39,6 +40,17 @@ class MCLibAdapter:
     def is_installed(self, version: str, minecraft_dir: str) -> bool:
         return os.path.exists(os.path.join(minecraft_dir, "versions", version))
 
+    def uninstall(self, version: str, minecraft_dir: str) -> None:
+        version_path = os.path.join(minecraft_dir, "versions", version)
+        if os.path.isdir(version_path):
+            shutil.rmtree(version_path)
+
+    def get_all_version_ids(self) -> list[str]:
+        data = requests.get(
+            "https://launchermeta.mojang.com/mc/game/version_manifest.json",
+        ).json()
+        return [ver["id"] for ver in data["versions"]]
+
     def get_launch_command(
         self,
         version: str,
@@ -46,5 +58,7 @@ class MCLibAdapter:
         options: dict,
     ) -> list[str]:
         return minecraft_launcher_lib.command.get_minecraft_command(
-            version, minecraft_dir, options
+            version,
+            minecraft_dir,
+            options,
         )
