@@ -1,5 +1,8 @@
 from __future__ import annotations
 
-from pymymc.launcher import main
+from pymymc.app import App
+from pymymc.ui.main_window import MainWindow
 
-main()
+app = App()
+window = MainWindow(app)
+window.run()
