@@ -22,10 +22,10 @@ from PyQt5.QtWidgets import QWidget
 from pymymc import constants
 from pymymc.app import InstallResult
 from pymymc.log import log_info
-from pymymc.ui.config_dialog import ConfigDialog
-from pymymc.ui.dialogs import error_box
-from pymymc.ui.dialogs import message_box
-from pymymc.ui.dialogs import warning_box
+from pymymc.ui.config_dialogue import ConfigDialogue
+from pymymc.ui.dialogues import error_box
+from pymymc.ui.dialogues import message_box
+from pymymc.ui.dialogues import warning_box
 
 if TYPE_CHECKING:
     from pymymc.app import App
@@ -142,6 +142,33 @@ QProgressBar {{
 QProgressBar::chunk {{
     background-color: {constants.ui.ACCENT_COLOUR};
     border-radius: 4px;
+}}
+
+QGroupBox {{
+    font-weight: bold;
+    border: 1px solid {constants.ui.INPUT_BORDER};
+    border-radius: 4px;
+    margin-top: 12px;
+    padding-top: 16px;
+}}
+
+QGroupBox::title {{
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+    color: {constants.ui.TEXT_MUTED};
+}}
+
+QSpinBox {{
+    background-color: {constants.ui.INPUT_BG};
+    border: 1px solid {constants.ui.INPUT_BORDER};
+    border-radius: 4px;
+    padding: 6px;
+    color: {constants.ui.TEXT_COLOUR};
+}}
+
+QSpinBox:focus {{
+    border: 1px solid {constants.ui.ACCENT_COLOUR};
 }}
 """
 
@@ -298,7 +325,7 @@ class MainWindow:
             )
 
     def _on_config(self) -> None:
-        ConfigDialog(self._window, self._app)
+        ConfigDialogue(self._window, self._app)
 
     def _on_progress_status(self, status: str) -> None:
         self._progress_bar.setValue(0)

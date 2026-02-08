@@ -108,8 +108,20 @@ class App:
             "token": "",
             "launcherName": "PyMyMC",
             "gameDirectory": config.minecraft_dir,
-            "jvmArguments": [f"-Xmx{config.jvm_ram}G"],
+            "jvmArguments": config.jvm_args.split(),
         }
+
+        if config.java_path:
+            options["executablePath"] = config.java_path
+
+        if config.custom_resolution:
+            options["customResolution"] = True
+            options["resolutionWidth"] = str(config.resolution_width)
+            options["resolutionHeight"] = str(config.resolution_height)
+
+        if config.auto_connect_server:
+            options["server"] = config.auto_connect_server
+            options["port"] = str(config.auto_connect_port)
 
         if remember_me:
             config.email = username
