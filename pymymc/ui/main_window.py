@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import QObject
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QPixmap
@@ -14,27 +12,18 @@ from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 from pymymc import constants
-from pymymc.app import InstallResult
 from pymymc.log import log_info
 from pymymc.ui.config_dialogue import ConfigDialogue
-from pymymc.ui.dialogues import error_box
-from pymymc.ui.dialogues import message_box
 from pymymc.ui.dialogues import warning_box
+from pymymc.ui.version_manager import VersionManagerDialogue
 
 if TYPE_CHECKING:
     from pymymc.app import App
-
-
-class _ProgressSignals(QObject):
-    status_changed = pyqtSignal(str)
-    progress_changed = pyqtSignal(int)
-    max_changed = pyqtSignal(int)
 
 
 _STYLESHEET = f"""
@@ -112,6 +101,14 @@ QPushButton#cancel_button:hover {{
     background-color: {constants.ui.INPUT_BG};
 }}
 
+QPushButton#delete_button {{
+    background-color: #F04747;
+}}
+
+QPushButton#delete_button:hover {{
+    background-color: #D84040;
+}}
+
 QCheckBox {{
     color: {constants.ui.TEXT_MUTED};
     spacing: 6px;
@@ -170,18 +167,35 @@ QSpinBox {{
 QSpinBox:focus {{
     border: 1px solid {constants.ui.ACCENT_COLOUR};
 }}
+
+QListWidget {{
+    background-color: {constants.ui.INPUT_BG};
+    border: 1px solid {constants.ui.INPUT_BORDER};
+    border-radius: 4px;
+    color: {constants.ui.TEXT_COLOUR};
+    padding: 4px;
+}}
+
+QListWidget::item {{
+    padding: 4px 8px;
+    border-radius: 3px;
+}}
+
+QListWidget::item:selected {{
+    background-color: {constants.ui.ACCENT_COLOUR};
+}}
+
+QListWidget::item:hover {{
+    background-color: {constants.ui.INPUT_BORDER};
+}}
 """
 
 
 class MainWindow:
     def __init__(self, app: App) -> None:
         self._app = app
-        self._signals = _ProgressSignals()
 
         app.set_ui_refresh(self._refresh_versions)
-        app.install_callbacks.on_status = self._signals.status_changed.emit
-        app.install_callbacks.on_progress = self._signals.progress_changed.emit
-        app.install_callbacks.on_max = self._signals.max_changed.emit
 
         self._build()
 
@@ -259,20 +273,11 @@ class MainWindow:
         config_btn.clicked.connect(self._on_config)
         button_row.addWidget(config_btn)
 
-        install_btn = QPushButton("Download!")
-        install_btn.clicked.connect(self._on_install)
-        button_row.addWidget(install_btn)
+        versions_btn = QPushButton("Versions")
+        versions_btn.clicked.connect(self._on_versions)
+        button_row.addWidget(versions_btn)
 
         layout.addLayout(button_row)
-
-        self._progress_bar = QProgressBar()
-        self._progress_bar.setValue(0)
-        self._progress_bar.setFormat("")
-        layout.addWidget(self._progress_bar)
-
-        self._signals.status_changed.connect(self._on_progress_status)
-        self._signals.progress_changed.connect(self._on_progress_value)
-        self._signals.max_changed.connect(self._on_progress_max)
 
         self._refresh_versions()
         log_info("Done!")
@@ -282,7 +287,8 @@ class MainWindow:
         self._username_label.setText("Email:" if config.premium else "Username:")
 
         versions = self._app.get_versions()
-        versions.insert(0, config.last_selected)
+        if config.last_selected and config.last_selected not in versions:
+            versions.insert(0, config.last_selected)
 
         self._version_combo.clear()
         self._version_combo.addItems(versions)
@@ -296,6 +302,13 @@ class MainWindow:
             warning_box("PyMyMC Error!", "Username cannot be empty!")
             return
 
+        if not version:
+            warning_box(
+                "PyMyMC Error!",
+                "No version selected! Download one from the Version Manager.",
+            )
+            return
+
         self._window.close()
         self._app.play(
             username=username,
@@ -303,40 +316,12 @@ class MainWindow:
             remember_me=remember_me,
         )
 
-    def _on_install(self) -> None:
-        version = self._version_combo.currentText()
-        result = self._app.install(version)
-
-        if result == InstallResult.ALREADY_INSTALLED:
-            message_box(
-                "PyMyMC Info!",
-                "This version is already installed! Press play to play it!",
-            )
-        elif result == InstallResult.NO_INTERNET:
-            error_box(
-                "PyMyMC Error!",
-                "An internet connection is required for this action!",
-            )
-        elif result == InstallResult.DOWNLOADING:
-            message_box(
-                "PyMyMC Info!",
-                "Downloading started! If you pressed play to download,"
-                " the program will freeze.",
-            )
-
     def _on_config(self) -> None:
         ConfigDialogue(self._window, self._app)
 
-    def _on_progress_status(self, status: str) -> None:
-        self._progress_bar.setValue(0)
-        self._progress_bar.setFormat(status)
-        print(status)
-
-    def _on_progress_value(self, value: int) -> None:
-        self._progress_bar.setValue(int(value))
-
-    def _on_progress_max(self, maximum: int) -> None:
-        self._progress_bar.setMaximum(int(maximum))
+    def _on_versions(self) -> None:
+        VersionManagerDialogue(self._window, self._app)
+        self._refresh_versions()
 
     def run(self) -> None:
         self._window.show()

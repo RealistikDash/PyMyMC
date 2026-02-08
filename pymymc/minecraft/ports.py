@@ -21,6 +21,9 @@ class VersionProvider(Protocol):
     def is_vanilla_version(self, version: str) -> bool:
         ...
 
+    def get_all_version_ids(self) -> list[str]:
+        ...
+
 
 class Installer(Protocol):
     def install(
@@ -32,6 +35,9 @@ class Installer(Protocol):
         ...
 
     def is_installed(self, version: str, minecraft_dir: str) -> bool:
+        ...
+
+    def uninstall(self, version: str, minecraft_dir: str) -> None:
         ...
 
 
