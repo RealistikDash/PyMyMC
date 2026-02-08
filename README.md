@@ -1,7 +1,7 @@
 # PyMyMC
 A simple Minecraft Launcher made in Python. An old codebase from when I was learning Python that should not be representative of my current skill.
 
-![UI Show](https://i.imgur.com/vB8Shu5.png)
+<img width="853" height="567" alt="image" src="https://github.com/user-attachments/assets/83dfc511-6700-4f3d-bb98-86e0eda856fd" />
 
 # Installation
 Installation only requires one command.
