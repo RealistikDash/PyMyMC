@@ -133,3 +133,5 @@ dmypy.json
 logs/
 config.json
 .mixin.out/
+.claude/
+CLAUDE.md

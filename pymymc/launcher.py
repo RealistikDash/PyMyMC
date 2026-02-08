@@ -31,7 +31,7 @@ from natsort import natsorted
 from pypresence import Presence
 from ttkthemes import ThemedTk
 
-import constants
+from pymymc import constants
 
 ASCII = r""" _____       __  __       __  __  _____
  |  __ \     |  \/  |     |  \/  |/ ____|
@@ -629,8 +629,11 @@ def fetch_versions() -> list[str]:
     return versions
 
 
-# The creation of the main window
-if __name__ == "__main__":
+def main():
+    """The creation of the main window."""
+    global MainWindow, ListVariable, Username_Entry, Password_Entry
+    global RememberMe_Var, Download_Progress, RPC, Username_Label, Ver_List
+
     log_coloured(ASCII, random.choice(COLOURS))
     log_info("Checking internet status...")
     config_load()
@@ -799,3 +802,7 @@ if __name__ == "__main__":
 
     log_info("Done!")
     MainWindow.mainloop()
+
+
+if __name__ == "__main__":
+    main()

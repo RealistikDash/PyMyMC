@@ -18,5 +18,6 @@ else:
     BAR_LEN = 245
     LIST_LEN = 8
 
-LOGO_SMALL = os.path.join("img", "pymymc_logo_small.png")
-LOGO_ICON = os.path.join("img", "pymymc_ico.ico")
+_RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
+LOGO_SMALL = os.path.join(_RESOURCES_DIR, "pymymc_logo_small.png")
+LOGO_ICON = os.path.join(_RESOURCES_DIR, "pymymc_ico.ico")
