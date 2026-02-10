@@ -8,7 +8,7 @@ from threading import Thread
 from typing import Callable
 
 from pymymc import constants
-from pymymc.adapters.mclib import MCLibAdapter
+from pymymc.adapters.minecraft import MinecraftAdapter
 from pymymc.config import AppConfig
 from pymymc.config import ConfigManager
 from pymymc.log import log_info
@@ -53,7 +53,7 @@ class App:
 
         self._config_manager = ConfigManager()
         self.config = self._config_manager.load()
-        self._minecraft = MCLibAdapter()
+        self._minecraft = MinecraftAdapter()
         self.rpc = DiscordRPC(constants.rpc.ENABLED, constants.rpc.CLIENT_ID)
 
         self.install_callbacks = ProgressCallbacks()

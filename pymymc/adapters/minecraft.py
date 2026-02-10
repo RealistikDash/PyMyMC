@@ -9,7 +9,7 @@ import requests
 from pymymc.minecraft.ports import InstallCallbacks
 
 
-class MCLibAdapter:
+class MinecraftAdapter:
     def get_release_ids(self) -> list[str]:
         data = requests.get(
             "https://launchermeta.mojang.com/mc/game/version_manifest.json",
