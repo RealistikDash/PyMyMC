@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import platform
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import Qt
@@ -95,7 +96,7 @@ class SettingsPage(QWidget):
 
         paths_layout.addWidget(QLabel("Minecraft Directory:"))
         mc_row = QHBoxLayout()
-        self._mc_path_entry = QLineEdit(config.minecraft_dir)
+        self._mc_path_entry = QLineEdit(str(config.minecraft_dir))
         mc_row.addWidget(self._mc_path_entry, 1)
         mc_browse = QPushButton("Browse")
         mc_browse.clicked.connect(self._browse_mc_dir)
@@ -249,13 +250,7 @@ class SettingsPage(QWidget):
     def _apply(self) -> None:
         config = self._app.config
 
-        mc_path = self._mc_path_entry.text()
-        if _SYSTEM == "Windows":
-            if not mc_path.endswith("\\"):
-                mc_path += "\\"
-        else:
-            if not mc_path.endswith("/"):
-                mc_path += "/"
+        mc_path = Path(self._mc_path_entry.text())
 
         if self._forget_me_check.isChecked():
             config.email = ""

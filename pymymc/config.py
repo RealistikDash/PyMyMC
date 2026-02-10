@@ -2,21 +2,19 @@ from __future__ import annotations
 
 import json
 import os
-import pathlib
 import platform
 from dataclasses import dataclass
+from pathlib import Path
 
-_SYSTEM = platform.system()
-
-if _SYSTEM == "Windows":
-    _DEFAULT_MC_DIR = os.getenv("APPDATA") + "\\.minecraft\\"
+if platform.system() == "Windows":
+    _DEFAULT_MC_DIR = Path(os.environ["APPDATA"]) / ".minecraft"
 else:
-    _DEFAULT_MC_DIR = str(pathlib.Path.home()) + "/.minecraft/"
+    _DEFAULT_MC_DIR = Path.home() / ".minecraft"
 
 
 @dataclass
 class AppConfig:
-    minecraft_dir: str = _DEFAULT_MC_DIR
+    minecraft_dir: Path = _DEFAULT_MC_DIR
     email: str = ""
     uuid: str = ""
     access_token: str = ""
@@ -56,11 +54,11 @@ _REVERSE_KEY_MAP = {v: k for k, v in _KEY_MAP.items()}
 
 
 class ConfigManager:
-    def __init__(self, path: str = "config.json") -> None:
+    def __init__(self, path: Path = Path("config.json")) -> None:
         self._path = path
 
     def load(self) -> AppConfig:
-        if not os.path.exists(self._path):
+        if not self._path.exists():
             config = AppConfig()
             self.save(config)
             return config
@@ -83,14 +81,17 @@ class ConfigManager:
             ram = raw["JVMRAM"]
             kwargs["jvm_args"] = f"-Xmx{ram}G"
 
+        if isinstance(kwargs.get("minecraft_dir"), str):
+            kwargs["minecraft_dir"] = Path(kwargs["minecraft_dir"])
+
         config = AppConfig(**kwargs)
         self.save(config)
         return config
 
     def save(self, config: AppConfig) -> None:
-        raw = {
-            json_key: getattr(config, field_name)
-            for field_name, json_key in _REVERSE_KEY_MAP.items()
-        }
+        raw = {}
+        for field_name, json_key in _REVERSE_KEY_MAP.items():
+            value = getattr(config, field_name)
+            raw[json_key] = str(value) if isinstance(value, Path) else value
         with open(self._path, "w") as f:
             json.dump(raw, f, indent=4)

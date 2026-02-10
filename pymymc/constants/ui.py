@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
-# Backgrounds (darkest -> lightest)
+# Backgrounds
 BG_DARKEST = "#08080C"
 BG_PRIMARY = "#0E0F14"
 BG_SURFACE = "#151620"
@@ -17,7 +17,7 @@ TEXT_PRIMARY = "#E8EAED"
 TEXT_SECONDARY = "#7C7E8C"
 TEXT_DISABLED = "#3E3F4D"
 
-# Accent (indigo -> violet gradient)
+# Accent
 ACCENT = "#6366F1"
 ACCENT_LIGHT = "#818CF8"
 ACCENT_GRADIENT_END = "#A855F7"
@@ -28,17 +28,14 @@ DANGER = "#EF4444"
 DANGER_HOVER = "#DC2626"
 WARNING = "#F59E0B"
 
-# Glow (radial gradient on content area)
+# Glow
 GLOW_COLOUR = ACCENT
 GLOW_OPACITY = 0.07
 GLOW_RADIUS_FACTOR = 0.7
 GLOW_ORIGIN_X = 1.0  # 0.0 = left, 1.0 = right
 GLOW_ORIGIN_Y = 1.0  # 0.0 = top, 1.0 = bottom
 
-# Legacy aliases
-WARNING_COLOUR = WARNING
-
 # Resources
-_RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
-LOGO_SMALL = os.path.join(_RESOURCES_DIR, "pymymc_logo_small.png")
-LOGO_ICON = os.path.join(_RESOURCES_DIR, "pymymc_ico.ico")
+_RESOURCES_DIR = Path(__file__).resolve().parent.parent / "resources"
+LOGO_SMALL = str(_RESOURCES_DIR / "pymymc_logo_small.png")
+LOGO_ICON = str(_RESOURCES_DIR / "pymymc_ico.ico")

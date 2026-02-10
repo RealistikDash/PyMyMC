@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Protocol
 
 
@@ -29,15 +30,15 @@ class Installer(Protocol):
     def install(
         self,
         version: str,
-        minecraft_dir: str,
+        minecraft_dir: Path,
         callbacks: InstallCallbacks,
     ) -> None:
         ...
 
-    def is_installed(self, version: str, minecraft_dir: str) -> bool:
+    def is_installed(self, version: str, minecraft_dir: Path) -> bool:
         ...
 
-    def uninstall(self, version: str, minecraft_dir: str) -> None:
+    def uninstall(self, version: str, minecraft_dir: Path) -> None:
         ...
 
 
@@ -45,7 +46,7 @@ class Launcher(Protocol):
     def get_launch_command(
         self,
         version: str,
-        minecraft_dir: str,
+        minecraft_dir: Path,
         options: dict,
     ) -> list[str]:
         ...

@@ -126,7 +126,7 @@ class App:
             "uuid": str(hashlib.md5(str.encode(username)).digest()),
             "token": "",
             "launcherName": "PyMyMC",
-            "gameDirectory": config.minecraft_dir,
+            "gameDirectory": str(config.minecraft_dir),
             "jvmArguments": config.jvm_args.split(),
         }
 
