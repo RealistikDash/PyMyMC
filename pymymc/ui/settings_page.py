@@ -24,6 +24,8 @@ from pymymc import constants
 if TYPE_CHECKING:
     from pymymc.app import App
 
+_ICON_DOT = "\u25cf"
+
 _SYSTEM = platform.system()
 
 
@@ -80,7 +82,7 @@ class SettingsPage(QWidget):
         online = self._app.has_internet
         status_row = QHBoxLayout()
         status_row.setSpacing(6)
-        dot = QLabel("\u25cf")
+        dot = QLabel(_ICON_DOT)
         dot.setObjectName("status_dot_online" if online else "status_dot_offline")
         status_row.addWidget(dot)
         status_label = QLabel("Online" if online else "Offline")
@@ -191,10 +193,6 @@ class SettingsPage(QWidget):
         # Game
         game_card, game_layout = _make_card("Game")
 
-        self._premium_check = QCheckBox("Use premium Minecraft accounts")
-        self._premium_check.setChecked(config.premium)
-        game_layout.addWidget(self._premium_check)
-
         self._historical_check = QCheckBox("Show non-release versions")
         self._historical_check.setChecked(config.show_historical)
         game_layout.addWidget(self._historical_check)
@@ -265,7 +263,6 @@ class SettingsPage(QWidget):
         config.resolution_height = self._height_spin.value()
         config.auto_connect_server = self._server_entry.text()
         config.auto_connect_port = self._port_spin.value()
-        config.premium = self._premium_check.isChecked()
         config.only_releases = not self._historical_check.isChecked()
 
         self._app.save_config()

@@ -15,6 +15,10 @@ from pymymc.log import log_error
 from pymymc.log import log_info
 from pymymc.log import log_warning
 
+_ICON_INFO = "\u2139"
+_ICON_ERROR = "\u2715"
+_ICON_WARNING = "\u26A0"
+
 _CARD_STYLE = (
     f"QFrame#dialog_card {{ background: {c.BG_SURFACE};"
     f"border: 1px solid {c.BORDER_SUBTLE};"
@@ -120,15 +124,15 @@ def _show_dialog(
 
 
 def message_box(title: str, content: str) -> None:
-    _show_dialog(title, content, icon=c.DIALOGUE_ICON_INFO, accent=c.ACCENT)
+    _show_dialog(title, content, icon=_ICON_INFO, accent=c.ACCENT)
     log_info(content)
 
 
 def error_box(title: str, content: str) -> None:
-    _show_dialog(title, content, icon=c.DIALOGUE_ICON_ERROR, accent=c.DANGER)
+    _show_dialog(title, content, icon=_ICON_ERROR, accent=c.DANGER)
     log_error(content)
 
 
 def warning_box(title: str, content: str) -> None:
-    _show_dialog(title, content, icon=c.DIALOGUE_ICON_WARNING, accent=c.WARNING)
+    _show_dialog(title, content, icon=_ICON_WARNING, accent=c.WARNING)
     log_warning(content)

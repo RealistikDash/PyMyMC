@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import platform
 from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import QPoint
@@ -26,13 +27,23 @@ from pymymc.ui.versions_page import VersionsPage
 if TYPE_CHECKING:
     from pymymc.app import App
 
+_ICON_HOME = "\u2302"
+_ICON_VERSIONS = "\u229e"
+_ICON_SETTINGS = "\u2699"
+_ICON_CLOSE = "\u2715"
+
+_SYSTEM = platform.system()
+_FONT_FAMILY = {
+    "Darwin": "Helvetica Neue",
+    "Windows": "Segoe UI",
+}.get(_SYSTEM, "Noto Sans")
 
 _STYLESHEET = f"""
 /* ── Global ── */
 QWidget {{
     background-color: {constants.ui.BG_PRIMARY};
     color: {constants.ui.TEXT_PRIMARY};
-    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-family: "{_FONT_FAMILY}";
     font-size: 13px;
 }}
 
@@ -353,6 +364,32 @@ QScrollArea {{
     border: none;
 }}
 
+/* ── Segmented control ── */
+QFrame#segment_container {{
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
+    border-radius: 16px;
+}}
+
+QPushButton#segment_btn {{
+    background: transparent;
+    border: none;
+    border-radius: 13px;
+    color: {constants.ui.TEXT_SECONDARY};
+    font-size: 12px;
+    font-weight: bold;
+    padding: 6px 0;
+}}
+
+QPushButton#segment_btn:checked {{
+    background-color: {constants.ui.ACCENT};
+    color: {constants.ui.TEXT_PRIMARY};
+}}
+
+QPushButton#segment_btn:hover:!checked {{
+    color: {constants.ui.TEXT_PRIMARY};
+}}
+
 /* ── Glow transparency ── */
 QStackedWidget {{
     background: transparent;
@@ -449,9 +486,9 @@ class MainWindow:
         self._btn_group = QButtonGroup(self._window)
         self._btn_group.setExclusive(True)
 
-        home_btn = _SidebarButton("\u2302", "Home")
-        versions_btn = _SidebarButton("\u229e", "Versions")
-        settings_btn = _SidebarButton("\u2699", "Settings")
+        home_btn = _SidebarButton(_ICON_HOME, "Home")
+        versions_btn = _SidebarButton(_ICON_VERSIONS, "Versions")
+        settings_btn = _SidebarButton(_ICON_SETTINGS, "Settings")
 
         for i, btn in enumerate((home_btn, versions_btn, settings_btn)):
             self._btn_group.addButton(btn, i)
@@ -486,8 +523,8 @@ class MainWindow:
         content_layout.addWidget(self._stack)
         body.addWidget(content_area, 1)
 
-        # Floating close button (top-right corner, always on top)
-        close_btn = QPushButton("\u2715", self._window)
+        # Close button
+        close_btn = QPushButton(_ICON_CLOSE, self._window)
         close_btn.setObjectName("close_btn")
         close_btn.setFixedSize(28, 28)
         close_btn.move(self._window.width() - 28, 0)
