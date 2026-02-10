@@ -90,7 +90,7 @@ class SettingsPage(QWidget):
 
         config = self._app.config
 
-        # --- Paths ---
+        # Paths
         paths_card, paths_layout = _make_card("Paths")
 
         paths_layout.addWidget(QLabel("Minecraft Directory:"))
@@ -114,7 +114,7 @@ class SettingsPage(QWidget):
 
         layout.addWidget(paths_card)
 
-        # --- Performance ---
+        # Performance
         perf_card, perf_layout = _make_card("Performance")
 
         perf_layout.addWidget(QLabel("Dedicated RAM:"))
@@ -140,7 +140,7 @@ class SettingsPage(QWidget):
 
         layout.addWidget(perf_card)
 
-        # --- Display ---
+        # Display
         display_card, display_layout = _make_card("Display")
 
         self._resolution_check = QCheckBox("Use custom resolution")
@@ -169,7 +169,7 @@ class SettingsPage(QWidget):
 
         layout.addWidget(display_card)
 
-        # --- Quick Connect ---
+        # Quick Connect
         connect_card, connect_layout = _make_card("Quick Connect")
 
         connect_row = QHBoxLayout()
@@ -187,7 +187,7 @@ class SettingsPage(QWidget):
 
         layout.addWidget(connect_card)
 
-        # --- Game ---
+        # Game
         game_card, game_layout = _make_card("Game")
 
         self._premium_check = QCheckBox("Use premium Minecraft accounts")
@@ -200,14 +200,14 @@ class SettingsPage(QWidget):
 
         layout.addWidget(game_card)
 
-        # --- Forget me ---
+        # Forget me
         self._forget_me_check = QCheckBox("Forget my account details")
         self._forget_me_check.setStyleSheet(
             f"color: {constants.ui.WARNING};",
         )
         layout.addWidget(self._forget_me_check)
 
-        # --- Apply ---
+        # Apply
         button_row = QHBoxLayout()
         apply_btn = QPushButton("Apply")
         apply_btn.clicked.connect(self._apply)

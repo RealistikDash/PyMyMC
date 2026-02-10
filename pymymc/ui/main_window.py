@@ -40,7 +40,7 @@ QLabel {{
     background-color: transparent;
 }}
 
-/* ── Close button (floating overlay) ── */
+/* ── Close button ── */
 QPushButton#close_btn {{
     background: transparent;
     border: none;
@@ -197,7 +197,7 @@ QPushButton#delete_button:hover {{
     background-color: {constants.ui.DANGER_HOVER};
 }}
 
-/* ── Play button (gradient) ── */
+/* ── Play button ── */
 QPushButton#play_button {{
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
         stop:0 {constants.ui.ACCENT}, stop:1 {constants.ui.ACCENT_GRADIENT_END});
@@ -436,7 +436,6 @@ class MainWindow:
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Body (sidebar + content)
         body = root
 
         # Sidebar
