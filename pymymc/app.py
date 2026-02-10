@@ -17,7 +17,7 @@ from pymymc.minecraft.versions import get_available_versions
 from pymymc.minecraft.versions import get_installed_versions
 from pymymc.services.discord import DiscordRPC
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.2.1"
 
 
 class InstallResult(Enum):
