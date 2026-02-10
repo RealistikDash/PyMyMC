@@ -5,10 +5,7 @@ from typing import TYPE_CHECKING
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
@@ -19,7 +16,6 @@ from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from pymymc import constants
 from pymymc.app import InstallResult
 from pymymc.ui.dialogues import error_box
 from pymymc.ui.dialogues import message_box
@@ -35,62 +31,32 @@ class _ProgressSignals(QObject):
     install_finished = pyqtSignal()
 
 
-class VersionManagerDialogue(QDialog):
-    def __init__(self, parent: QWidget, app: App) -> None:
+class VersionsPage(QWidget):
+    def __init__(self, app: App, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._app = app
         self._signals = _ProgressSignals()
         self._versions: list[str] = []
         self._installed: set[str] = set()
         self._downloading = False
-
-        self._save_and_replace_callbacks()
+        self._callbacks_wired = False
         self._build()
-        self._load_versions()
-        self.exec_()
-        self._restore_callbacks()
-
-    def _save_and_replace_callbacks(self) -> None:
-        cb = self._app.install_callbacks
-        self._orig_on_status = cb.on_status
-        self._orig_on_progress = cb.on_progress
-        self._orig_on_max = cb.on_max
-        self._orig_on_complete = cb.on_complete
-
-        cb.on_status = self._signals.status_changed.emit
-        cb.on_progress = self._signals.progress_changed.emit
-        cb.on_max = self._signals.max_changed.emit
-        cb.on_complete = self._signals.install_finished.emit
-
-    def _restore_callbacks(self) -> None:
-        cb = self._app.install_callbacks
-        cb.on_status = self._orig_on_status
-        cb.on_progress = self._orig_on_progress
-        cb.on_max = self._orig_on_max
-        cb.on_complete = self._orig_on_complete
 
     def _build(self) -> None:
-        self.setWindowTitle("Version Manager")
-        self.setWindowIcon(QIcon(constants.ui.LOGO_ICON))
-        self.setFixedSize(450, 520)
-
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(8)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(12)
 
-        title = QLabel("Version Manager")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        title.setAlignment(Qt.AlignCenter)
+        title = QLabel("Versions")
+        title.setObjectName("page_title")
         layout.addWidget(title)
 
-        separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setStyleSheet(f"color: {constants.ui.INPUT_BORDER};")
-        layout.addWidget(separator)
+        desc = QLabel("Download and manage Minecraft versions")
+        desc.setObjectName("page_desc")
+        layout.addWidget(desc)
 
         filter_row = QHBoxLayout()
         filter_row.setSpacing(8)
-
         self._search_entry = QLineEdit()
         self._search_entry.setPlaceholderText("Search versions...")
         self._search_entry.textChanged.connect(self._apply_filter)
@@ -100,12 +66,11 @@ class VersionManagerDialogue(QDialog):
         self._releases_only_check.setChecked(True)
         self._releases_only_check.toggled.connect(self._on_filter_toggled)
         filter_row.addWidget(self._releases_only_check)
-
         layout.addLayout(filter_row)
 
         self._version_list = QListWidget()
-        layout.addWidget(self._version_list, 1)
         self._version_list.currentItemChanged.connect(self._on_selection_changed)
+        layout.addWidget(self._version_list, 1)
 
         button_row = QHBoxLayout()
         button_row.setSpacing(8)
@@ -122,12 +87,6 @@ class VersionManagerDialogue(QDialog):
         button_row.addWidget(self._delete_btn)
 
         button_row.addStretch()
-
-        close_btn = QPushButton("Close")
-        close_btn.setObjectName("cancel_button")
-        close_btn.clicked.connect(self.reject)
-        button_row.addWidget(close_btn)
-
         layout.addLayout(button_row)
 
         self._progress_bar = QProgressBar()
@@ -139,6 +98,38 @@ class VersionManagerDialogue(QDialog):
         self._signals.progress_changed.connect(self._on_progress_value)
         self._signals.max_changed.connect(self._on_progress_max)
         self._signals.install_finished.connect(self._on_install_complete)
+
+    def showEvent(self, event: object) -> None:
+        super().showEvent(event)
+        if not self._callbacks_wired:
+            self._wire_callbacks()
+        self._load_versions()
+
+    def hideEvent(self, event: object) -> None:
+        super().hideEvent(event)
+        if self._callbacks_wired and not self._downloading:
+            self._unwire_callbacks()
+
+    def _wire_callbacks(self) -> None:
+        cb = self._app.install_callbacks
+        self._orig_on_status = cb.on_status
+        self._orig_on_progress = cb.on_progress
+        self._orig_on_max = cb.on_max
+        self._orig_on_complete = cb.on_complete
+
+        cb.on_status = self._signals.status_changed.emit
+        cb.on_progress = self._signals.progress_changed.emit
+        cb.on_max = self._signals.max_changed.emit
+        cb.on_complete = self._signals.install_finished.emit
+        self._callbacks_wired = True
+
+    def _unwire_callbacks(self) -> None:
+        cb = self._app.install_callbacks
+        cb.on_status = self._orig_on_status
+        cb.on_progress = self._orig_on_progress
+        cb.on_max = self._orig_on_max
+        cb.on_complete = self._orig_on_complete
+        self._callbacks_wired = False
 
     def _load_versions(self) -> None:
         releases_only = self._releases_only_check.isChecked()
@@ -188,10 +179,7 @@ class VersionManagerDialogue(QDialog):
         result = self._app.install(version)
 
         if result == InstallResult.ALREADY_INSTALLED:
-            message_box(
-                "PyMyMC Info!",
-                "This version is already installed!",
-            )
+            message_box("PyMyMC Info!", "This version is already installed!")
         elif result == InstallResult.NO_INTERNET:
             error_box(
                 "PyMyMC Error!",

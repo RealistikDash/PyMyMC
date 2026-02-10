@@ -2,34 +2,33 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from PyQt5.QtCore import QPoint
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QComboBox
-from PyQt5.QtWidgets import QFrame
+from PyQt5.QtWidgets import QButtonGroup
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 from pymymc import constants
 from pymymc.log import log_info
-from pymymc.ui.config_dialogue import ConfigDialogue
-from pymymc.ui.dialogues import warning_box
-from pymymc.ui.version_manager import VersionManagerDialogue
+from pymymc.ui.home_page import HomePage
+from pymymc.ui.settings_page import SettingsPage
+from pymymc.ui.versions_page import VersionsPage
 
 if TYPE_CHECKING:
     from pymymc.app import App
 
 
 _STYLESHEET = f"""
+/* ── Global ── */
 QWidget {{
-    background-color: {constants.ui.BG_COLOUR};
-    color: {constants.ui.TEXT_COLOUR};
+    background-color: {constants.ui.BG_PRIMARY};
+    color: {constants.ui.TEXT_PRIMARY};
     font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-size: 13px;
 }}
@@ -38,28 +37,139 @@ QLabel {{
     background-color: transparent;
 }}
 
+/* ── Title bar ── */
+QWidget#title_bar {{
+    background-color: {constants.ui.BG_DARKEST};
+}}
+
+QLabel#title_bar_label {{
+    font-size: 12px;
+    font-weight: bold;
+    color: {constants.ui.TEXT_SECONDARY};
+    padding-left: 12px;
+}}
+
+QPushButton#minimize_btn, QPushButton#close_btn {{
+    background: transparent;
+    border: none;
+    color: {constants.ui.TEXT_SECONDARY};
+    font-size: 14px;
+    padding: 0;
+}}
+
+QPushButton#minimize_btn:hover {{
+    color: {constants.ui.TEXT_PRIMARY};
+    background: {constants.ui.BG_ELEVATED};
+}}
+
+QPushButton#close_btn:hover {{
+    background: {constants.ui.DANGER};
+    color: white;
+}}
+
+/* ── Sidebar ── */
+QWidget#sidebar {{
+    background-color: {constants.ui.BG_DARKEST};
+}}
+
+QPushButton.sidebar_btn {{
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    color: {constants.ui.TEXT_SECONDARY};
+    padding: 14px 0;
+    font-size: 11px;
+}}
+
+QPushButton.sidebar_btn:checked {{
+    border-left: 3px solid {constants.ui.ACCENT};
+    color: {constants.ui.TEXT_PRIMARY};
+    background: {constants.ui.BG_PRIMARY};
+}}
+
+QPushButton.sidebar_btn:hover {{
+    color: {constants.ui.TEXT_PRIMARY};
+}}
+
+/* ── Page titles ── */
+QLabel#page_title {{
+    font-size: 20px;
+    font-weight: bold;
+}}
+
+QLabel#page_title_logo {{
+    font-size: 24px;
+    font-weight: bold;
+}}
+
+QLabel#page_desc {{
+    color: {constants.ui.TEXT_SECONDARY};
+    font-size: 12px;
+}}
+
+QLabel#subtitle {{
+    color: {constants.ui.TEXT_SECONDARY};
+    font-size: 12px;
+}}
+
+QLabel#card_heading {{
+    font-size: 13px;
+    font-weight: bold;
+    color: {constants.ui.ACCENT_LIGHT};
+}}
+
+/* ── Status bar ── */
+QLabel#status_version {{
+    font-size: 10px;
+    color: {constants.ui.TEXT_DISABLED};
+}}
+
+QLabel#status_dot_online {{
+    color: {constants.ui.SUCCESS};
+    font-size: 10px;
+}}
+
+QLabel#status_dot_offline {{
+    color: {constants.ui.DANGER};
+    font-size: 10px;
+}}
+
+QLabel#status_text {{
+    font-size: 10px;
+    color: {constants.ui.TEXT_SECONDARY};
+}}
+
+/* ── Cards ── */
+QFrame#card {{
+    background: {constants.ui.BG_SURFACE};
+    border: 1px solid {constants.ui.BORDER_SUBTLE};
+    border-radius: 10px;
+    padding: 16px;
+}}
+
+/* ── Inputs ── */
 QLineEdit {{
-    background-color: {constants.ui.INPUT_BG};
-    border: 1px solid {constants.ui.INPUT_BORDER};
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
     border-radius: 4px;
     padding: 6px;
-    color: {constants.ui.TEXT_COLOUR};
+    color: {constants.ui.TEXT_PRIMARY};
 }}
 
 QLineEdit:focus {{
-    border: 1px solid {constants.ui.ACCENT_COLOUR};
+    border: 1px solid {constants.ui.ACCENT};
 }}
 
 QComboBox {{
-    background-color: {constants.ui.INPUT_BG};
-    border: 1px solid {constants.ui.INPUT_BORDER};
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
     border-radius: 4px;
     padding: 6px;
-    color: {constants.ui.TEXT_COLOUR};
+    color: {constants.ui.TEXT_PRIMARY};
 }}
 
 QComboBox:focus {{
-    border: 1px solid {constants.ui.ACCENT_COLOUR};
+    border: 1px solid {constants.ui.ACCENT};
 }}
 
 QComboBox::drop-down {{
@@ -68,15 +178,16 @@ QComboBox::drop-down {{
 }}
 
 QComboBox QAbstractItemView {{
-    background-color: {constants.ui.INPUT_BG};
-    border: 1px solid {constants.ui.INPUT_BORDER};
-    color: {constants.ui.TEXT_COLOUR};
-    selection-background-color: {constants.ui.ACCENT_COLOUR};
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
+    color: {constants.ui.TEXT_PRIMARY};
+    selection-background-color: {constants.ui.ACCENT};
 }}
 
+/* ── Buttons ── */
 QPushButton {{
-    background-color: {constants.ui.ACCENT_COLOUR};
-    color: {constants.ui.TEXT_COLOUR};
+    background-color: {constants.ui.ACCENT};
+    color: {constants.ui.TEXT_PRIMARY};
     font-weight: bold;
     border: none;
     border-radius: 4px;
@@ -84,33 +195,42 @@ QPushButton {{
 }}
 
 QPushButton:hover {{
-    background-color: {constants.ui.BUTTON_HOVER};
+    background-color: {constants.ui.ACCENT_LIGHT};
 }}
 
 QPushButton:pressed {{
-    background-color: {constants.ui.FG_COLOUR};
-}}
-
-QPushButton#cancel_button {{
-    background-color: transparent;
-    border: 1px solid {constants.ui.ACCENT_COLOUR};
-    color: {constants.ui.ACCENT_COLOUR};
-}}
-
-QPushButton#cancel_button:hover {{
-    background-color: {constants.ui.INPUT_BG};
+    background-color: {constants.ui.ACCENT};
 }}
 
 QPushButton#delete_button {{
-    background-color: #F04747;
+    background-color: {constants.ui.DANGER};
 }}
 
 QPushButton#delete_button:hover {{
-    background-color: #D84040;
+    background-color: {constants.ui.DANGER_HOVER};
 }}
 
+/* ── Play button (gradient) ── */
+QPushButton#play_button {{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 {constants.ui.ACCENT}, stop:1 {constants.ui.ACCENT_GRADIENT_END});
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 12px 0;
+    color: white;
+}}
+
+QPushButton#play_button:hover {{
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 {constants.ui.ACCENT_LIGHT}, stop:1 #C084FC);
+}}
+
+/* ── Checkboxes ── */
 QCheckBox {{
-    color: {constants.ui.TEXT_MUTED};
+    background: transparent;
+    color: {constants.ui.TEXT_SECONDARY};
     spacing: 6px;
 }}
 
@@ -118,32 +238,34 @@ QCheckBox::indicator {{
     width: 18px;
     height: 18px;
     border-radius: 3px;
-    border: 1px solid {constants.ui.INPUT_BORDER};
-    background-color: {constants.ui.INPUT_BG};
+    border: 1px solid {constants.ui.BORDER};
+    background-color: {constants.ui.BG_ELEVATED};
 }}
 
 QCheckBox::indicator:checked {{
-    background-color: {constants.ui.ACCENT_COLOUR};
-    border: 1px solid {constants.ui.ACCENT_COLOUR};
+    background-color: {constants.ui.ACCENT};
+    border: 1px solid {constants.ui.ACCENT};
 }}
 
+/* ── Progress bar ── */
 QProgressBar {{
-    background-color: {constants.ui.INPUT_BG};
+    background-color: {constants.ui.BG_ELEVATED};
     border: none;
     border-radius: 4px;
     text-align: center;
-    color: {constants.ui.TEXT_COLOUR};
+    color: {constants.ui.TEXT_PRIMARY};
     font-size: 11px;
 }}
 
 QProgressBar::chunk {{
-    background-color: {constants.ui.ACCENT_COLOUR};
+    background-color: {constants.ui.ACCENT};
     border-radius: 4px;
 }}
 
+/* ── Group boxes ── */
 QGroupBox {{
     font-weight: bold;
-    border: 1px solid {constants.ui.INPUT_BORDER};
+    border: 1px solid {constants.ui.BORDER};
     border-radius: 4px;
     margin-top: 12px;
     padding-top: 16px;
@@ -153,26 +275,28 @@ QGroupBox::title {{
     subcontrol-origin: margin;
     left: 10px;
     padding: 0 4px;
-    color: {constants.ui.TEXT_MUTED};
+    color: {constants.ui.TEXT_SECONDARY};
 }}
 
+/* ── Spin boxes ── */
 QSpinBox {{
-    background-color: {constants.ui.INPUT_BG};
-    border: 1px solid {constants.ui.INPUT_BORDER};
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
     border-radius: 4px;
     padding: 6px;
-    color: {constants.ui.TEXT_COLOUR};
+    color: {constants.ui.TEXT_PRIMARY};
 }}
 
 QSpinBox:focus {{
-    border: 1px solid {constants.ui.ACCENT_COLOUR};
+    border: 1px solid {constants.ui.ACCENT};
 }}
 
+/* ── List widget ── */
 QListWidget {{
-    background-color: {constants.ui.INPUT_BG};
-    border: 1px solid {constants.ui.INPUT_BORDER};
+    background-color: {constants.ui.BG_ELEVATED};
+    border: 1px solid {constants.ui.BORDER};
     border-radius: 4px;
-    color: {constants.ui.TEXT_COLOUR};
+    color: {constants.ui.TEXT_PRIMARY};
     padding: 4px;
 }}
 
@@ -182,22 +306,124 @@ QListWidget::item {{
 }}
 
 QListWidget::item:selected {{
-    background-color: {constants.ui.ACCENT_COLOUR};
+    background-color: {constants.ui.ACCENT};
 }}
 
 QListWidget::item:hover {{
-    background-color: {constants.ui.INPUT_BORDER};
+    background-color: {constants.ui.BORDER};
+}}
+
+/* ── Scrollbars ── */
+QScrollBar:vertical {{
+    background: transparent;
+    width: 6px;
+}}
+
+QScrollBar::handle:vertical {{
+    background: {constants.ui.BORDER};
+    border-radius: 3px;
+    min-height: 24px;
+}}
+
+QScrollBar::handle:vertical:hover {{
+    background: {constants.ui.TEXT_SECONDARY};
+}}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+    height: 0;
+}}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+    background: transparent;
+}}
+
+QScrollBar:horizontal {{
+    background: transparent;
+    height: 6px;
+}}
+
+QScrollBar::handle:horizontal {{
+    background: {constants.ui.BORDER};
+    border-radius: 3px;
+    min-width: 24px;
+}}
+
+QScrollBar::handle:horizontal:hover {{
+    background: {constants.ui.TEXT_SECONDARY};
+}}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+    width: 0;
+}}
+
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+    background: transparent;
+}}
+
+/* ── Scroll area ── */
+QScrollArea {{
+    background: transparent;
+    border: none;
 }}
 """
+
+
+class _TitleBar(QWidget):
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent)
+        self.setObjectName("title_bar")
+        self.setFixedHeight(36)
+        self._drag_pos: QPoint | None = None
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        label = QLabel("PyMyMC")
+        label.setObjectName("title_bar_label")
+        layout.addWidget(label)
+
+        layout.addStretch()
+
+        minimize_btn = QPushButton("\u2500")
+        minimize_btn.setObjectName("minimize_btn")
+        minimize_btn.setFixedSize(36, 36)
+        minimize_btn.clicked.connect(lambda: self.window().showMinimized())
+        layout.addWidget(minimize_btn)
+
+        close_btn = QPushButton("\u2715")
+        close_btn.setObjectName("close_btn")
+        close_btn.setFixedSize(36, 36)
+        close_btn.clicked.connect(lambda: self.window().close())
+        layout.addWidget(close_btn)
+
+    def mousePressEvent(self, event: object) -> None:
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPos() - self.window().frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event: object) -> None:
+        if self._drag_pos is not None and event.buttons() & Qt.LeftButton:
+            self.window().move(event.globalPos() - self._drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event: object) -> None:
+        self._drag_pos = None
+
+
+class _SidebarButton(QPushButton):
+    def __init__(self, icon_text: str, label: str) -> None:
+        super().__init__(f"{icon_text}\n{label}")
+        self.setCheckable(True)
+        self.setProperty("class", "sidebar_btn")
+        self.setFixedWidth(56)
 
 
 class MainWindow:
     def __init__(self, app: App) -> None:
         self._app = app
-
-        app.set_ui_refresh(self._refresh_versions)
-
         self._build()
+        app.set_ui_refresh(self._on_config_changed)
 
     def _build(self) -> None:
         log_info("Configuring the UI...")
@@ -208,120 +434,75 @@ class MainWindow:
         self._window = QWidget()
         self._window.setWindowTitle("PyMyMC")
         self._window.setWindowIcon(QIcon(constants.ui.LOGO_ICON))
-        self._window.setFixedSize(380, 520)
+        self._window.setWindowFlags(Qt.FramelessWindowHint)
+        self._window.setFixedSize(720, 520)
 
-        layout = QVBoxLayout(self._window)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(8)
+        root = QVBoxLayout(self._window)
+        root.setContentsMargins(0, 0, 0, 0)
+        root.setSpacing(0)
 
-        logo_pixmap = QPixmap(constants.ui.LOGO_SMALL)
-        logo_label = QLabel()
-        logo_label.setPixmap(logo_pixmap)
-        logo_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(logo_label)
+        # Title bar
+        root.addWidget(_TitleBar(self._window))
 
-        title_label = QLabel(f"PyMyMC {self._app.version}")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
-        title_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title_label)
+        # Body (sidebar + content)
+        body = QHBoxLayout()
+        body.setContentsMargins(0, 0, 0, 0)
+        body.setSpacing(0)
 
-        subtitle_label = QLabel("Made by RealistikDash")
-        subtitle_label.setStyleSheet(
-            f"font-size: 12px; color: {constants.ui.TEXT_MUTED};",
-        )
-        subtitle_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(subtitle_label)
+        # Sidebar
+        sidebar = QWidget()
+        sidebar.setObjectName("sidebar")
+        sidebar.setFixedWidth(56)
+        sidebar_layout = QVBoxLayout(sidebar)
+        sidebar_layout.setContentsMargins(0, 4, 0, 4)
+        sidebar_layout.setSpacing(0)
 
-        separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setStyleSheet(f"color: {constants.ui.INPUT_BORDER};")
-        layout.addWidget(separator)
+        self._btn_group = QButtonGroup(self._window)
+        self._btn_group.setExclusive(True)
 
-        self._username_label = QLabel("Email:")
-        layout.addWidget(self._username_label)
+        home_btn = _SidebarButton("\u2302", "Home")
+        versions_btn = _SidebarButton("\u229e", "Versions")
+        settings_btn = _SidebarButton("\u2699", "Settings")
 
-        self._username_entry = QLineEdit(self._app.config.email)
-        layout.addWidget(self._username_entry)
+        for i, btn in enumerate((home_btn, versions_btn, settings_btn)):
+            self._btn_group.addButton(btn, i)
+            sidebar_layout.addWidget(btn)
 
-        layout.addWidget(QLabel("Password:"))
+        sidebar_layout.addStretch()
 
-        self._password_entry = QLineEdit()
-        self._password_entry.setEchoMode(QLineEdit.Password)
-        layout.addWidget(self._password_entry)
+        # Status area at bottom of sidebar
+        version_label = QLabel(f"v{self._app.version}")
+        version_label.setObjectName("status_version")
+        version_label.setAlignment(Qt.AlignCenter)
+        sidebar_layout.addWidget(version_label)
 
-        layout.addWidget(QLabel("Version:"))
+        body.addWidget(sidebar)
 
-        version_row = QHBoxLayout()
-        version_row.setSpacing(8)
+        # Stacked content
+        self._stack = QStackedWidget()
 
-        self._version_combo = QComboBox()
-        version_row.addWidget(self._version_combo, 1)
+        self._home_page = HomePage(self._app)
+        self._versions_page = VersionsPage(self._app)
+        self._settings_page = SettingsPage(self._app)
 
-        self._remember_me_check = QCheckBox("Remember me")
-        version_row.addWidget(self._remember_me_check)
+        self._stack.addWidget(self._home_page)
+        self._stack.addWidget(self._versions_page)
+        self._stack.addWidget(self._settings_page)
 
-        layout.addLayout(version_row)
+        body.addWidget(self._stack, 1)
+        root.addLayout(body, 1)
 
-        button_row = QHBoxLayout()
-        button_row.setSpacing(8)
+        # Wire sidebar to stack
+        self._btn_group.buttonClicked[int].connect(self._stack.setCurrentIndex)
+        home_btn.setChecked(True)
 
-        play_btn = QPushButton("Play!")
-        play_btn.clicked.connect(self._on_play)
-        button_row.addWidget(play_btn)
+        # Initial data load
+        self._home_page.refresh()
 
-        config_btn = QPushButton("Config")
-        config_btn.clicked.connect(self._on_config)
-        button_row.addWidget(config_btn)
-
-        versions_btn = QPushButton("Versions")
-        versions_btn.clicked.connect(self._on_versions)
-        button_row.addWidget(versions_btn)
-
-        layout.addLayout(button_row)
-
-        self._refresh_versions()
         log_info("Done!")
 
-    def _refresh_versions(self) -> None:
-        config = self._app.config
-        self._username_label.setText("Email:" if config.premium else "Username:")
-
-        versions = self._app.get_versions()
-        if config.last_selected and config.last_selected not in versions:
-            versions.insert(0, config.last_selected)
-
-        self._version_combo.clear()
-        self._version_combo.addItems(versions)
-
-    def _on_play(self) -> None:
-        username = self._username_entry.text()
-        version = self._version_combo.currentText()
-        remember_me = self._remember_me_check.isChecked()
-
-        if not username:
-            warning_box("PyMyMC Error!", "Username cannot be empty!")
-            return
-
-        if not version:
-            warning_box(
-                "PyMyMC Error!",
-                "No version selected! Download one from the Version Manager.",
-            )
-            return
-
-        self._window.close()
-        self._app.play(
-            username=username,
-            version=version,
-            remember_me=remember_me,
-        )
-
-    def _on_config(self) -> None:
-        ConfigDialogue(self._window, self._app)
-
-    def _on_versions(self) -> None:
-        VersionManagerDialogue(self._window, self._app)
-        self._refresh_versions()
+    def _on_config_changed(self) -> None:
+        self._home_page.refresh()
 
     def run(self) -> None:
         self._window.show()
