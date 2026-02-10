@@ -8,8 +8,7 @@ from threading import Thread
 from typing import Callable
 
 from pymymc import constants
-from pymymc.adapters.mclib import MCLibAdapter
-from pymymc.adapters.network import check_internet
+from pymymc.adapters.minecraft import MinecraftAdapter
 from pymymc.config import AppConfig
 from pymymc.config import ConfigManager
 from pymymc.log import log_info
@@ -18,7 +17,7 @@ from pymymc.minecraft.versions import get_available_versions
 from pymymc.minecraft.versions import get_installed_versions
 from pymymc.services.discord import DiscordRPC
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 
 
 class InstallResult(Enum):
@@ -54,13 +53,16 @@ class App:
 
         self._config_manager = ConfigManager()
         self.config = self._config_manager.load()
-        self.has_internet = check_internet()
-
-        self._minecraft = MCLibAdapter()
+        self._minecraft = MinecraftAdapter()
         self.rpc = DiscordRPC(constants.rpc.ENABLED, constants.rpc.CLIENT_ID)
 
         self.install_callbacks = ProgressCallbacks()
         self._ui_refresh: Callable[[], None] = lambda: None
+        self._available_versions_cache: dict[bool, list[str]] = {}
+
+        releases = get_available_versions(self._minecraft, True)
+        self._available_versions_cache[True] = releases
+        self.has_internet = len(releases) > 0
 
     @property
     def version(self) -> str:
@@ -73,7 +75,12 @@ class App:
         return get_installed_versions(self.config.minecraft_dir)
 
     def get_available_versions(self, releases_only: bool) -> list[str]:
-        return get_available_versions(self._minecraft, releases_only)
+        if releases_only not in self._available_versions_cache:
+            self._available_versions_cache[releases_only] = get_available_versions(
+                self._minecraft,
+                releases_only,
+            )
+        return list(self._available_versions_cache[releases_only])
 
     def save_config(self) -> None:
         self._config_manager.save(self.config)
@@ -119,7 +126,7 @@ class App:
             "uuid": str(hashlib.md5(str.encode(username)).digest()),
             "token": "",
             "launcherName": "PyMyMC",
-            "gameDirectory": config.minecraft_dir,
+            "gameDirectory": str(config.minecraft_dir),
             "jvmArguments": config.jvm_args.split(),
         }
 

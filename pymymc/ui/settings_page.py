@@ -2,19 +2,19 @@ from __future__ import annotations
 
 import platform
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QDialog
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGroupBox
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QScrollArea
 from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
@@ -24,67 +24,101 @@ from pymymc import constants
 if TYPE_CHECKING:
     from pymymc.app import App
 
+_ICON_DOT = "\u25cf"
+
 _SYSTEM = platform.system()
 
 
-class ConfigDialogue(QDialog):
-    def __init__(self, parent: QWidget, app: App) -> None:
+def _make_card(title: str) -> tuple[QFrame, QVBoxLayout]:
+    card = QFrame()
+    card.setObjectName("card")
+    shadow = QGraphicsDropShadowEffect()
+    shadow.setBlurRadius(24)
+    shadow.setOffset(0, 6)
+    shadow.setColor(Qt.black)
+    card.setGraphicsEffect(shadow)
+
+    card_layout = QVBoxLayout(card)
+    card_layout.setContentsMargins(16, 16, 16, 16)
+    card_layout.setSpacing(10)
+
+    heading = QLabel(title)
+    heading.setObjectName("card_heading")
+    card_layout.addWidget(heading)
+
+    return card, card_layout
+
+
+class SettingsPage(QWidget):
+    def __init__(self, app: App, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._app = app
-        self._app.rpc.set_configuring()
         self._build()
-        self.exec_()
-        self._app.rpc.set_main_menu()
 
     def _build(self) -> None:
-        config = self._app.config
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
 
-        self.setWindowTitle("PyMyMC Settings")
-        self.setWindowIcon(QIcon(constants.ui.LOGO_ICON))
-        self.setFixedWidth(420)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        outer.addWidget(scroll)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(12)
+        container = QWidget()
+        scroll.setWidget(container)
+
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(16)
 
         title = QLabel("Settings")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        title.setAlignment(Qt.AlignCenter)
+        title.setObjectName("page_title")
         layout.addWidget(title)
 
-        separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setStyleSheet(f"color: {constants.ui.INPUT_BORDER};")
-        layout.addWidget(separator)
+        desc = QLabel("Configure your launcher")
+        desc.setObjectName("page_desc")
+        layout.addWidget(desc)
 
-        # --- Paths ---
-        paths_group = QGroupBox("Paths")
-        paths_layout = QVBoxLayout(paths_group)
+        online = self._app.has_internet
+        status_row = QHBoxLayout()
+        status_row.setSpacing(6)
+        dot = QLabel(_ICON_DOT)
+        dot.setObjectName("status_dot_online" if online else "status_dot_offline")
+        status_row.addWidget(dot)
+        status_label = QLabel("Online" if online else "Offline")
+        status_label.setObjectName("status_text")
+        status_row.addWidget(status_label)
+        status_row.addStretch()
+        layout.addLayout(status_row)
+
+        config = self._app.config
+
+        # Paths
+        paths_card, paths_layout = _make_card("Paths")
 
         paths_layout.addWidget(QLabel("Minecraft Directory:"))
-        mc_path_row = QHBoxLayout()
-        self._mc_path_entry = QLineEdit(config.minecraft_dir)
-        mc_path_row.addWidget(self._mc_path_entry, 1)
-        mc_browse_btn = QPushButton("Browse")
-        mc_browse_btn.clicked.connect(self._browse_mc_dir)
-        mc_path_row.addWidget(mc_browse_btn)
-        paths_layout.addLayout(mc_path_row)
+        mc_row = QHBoxLayout()
+        self._mc_path_entry = QLineEdit(str(config.minecraft_dir))
+        mc_row.addWidget(self._mc_path_entry, 1)
+        mc_browse = QPushButton("Browse")
+        mc_browse.clicked.connect(self._browse_mc_dir)
+        mc_row.addWidget(mc_browse)
+        paths_layout.addLayout(mc_row)
 
         paths_layout.addWidget(QLabel("Java Executable:"))
-        java_path_row = QHBoxLayout()
+        java_row = QHBoxLayout()
         self._java_path_entry = QLineEdit(config.java_path)
         self._java_path_entry.setPlaceholderText("System default")
-        java_path_row.addWidget(self._java_path_entry, 1)
-        java_browse_btn = QPushButton("Browse")
-        java_browse_btn.clicked.connect(self._browse_java)
-        java_path_row.addWidget(java_browse_btn)
-        paths_layout.addLayout(java_path_row)
+        java_row.addWidget(self._java_path_entry, 1)
+        java_browse = QPushButton("Browse")
+        java_browse.clicked.connect(self._browse_java)
+        java_row.addWidget(java_browse)
+        paths_layout.addLayout(java_row)
 
-        layout.addWidget(paths_group)
+        layout.addWidget(paths_card)
 
-        # --- Performance ---
-        perf_group = QGroupBox("Performance")
-        perf_layout = QVBoxLayout(perf_group)
+        # Performance
+        perf_card, perf_layout = _make_card("Performance")
 
         perf_layout.addWidget(QLabel("Dedicated RAM:"))
         ram_row = QHBoxLayout()
@@ -107,11 +141,10 @@ class ConfigDialogue(QDialog):
 
         self._ram_spin.valueChanged.connect(self._on_ram_changed)
 
-        layout.addWidget(perf_group)
+        layout.addWidget(perf_card)
 
-        # --- Display ---
-        display_group = QGroupBox("Display")
-        display_layout = QVBoxLayout(display_group)
+        # Display
+        display_card, display_layout = _make_card("Display")
 
         self._resolution_check = QCheckBox("Use custom resolution")
         self._resolution_check.setChecked(config.custom_resolution)
@@ -137,61 +170,48 @@ class ConfigDialogue(QDialog):
         self._resolution_check.toggled.connect(self._width_spin.setEnabled)
         self._resolution_check.toggled.connect(self._height_spin.setEnabled)
 
-        layout.addWidget(display_group)
+        layout.addWidget(display_card)
 
-        # --- Quick Connect ---
-        connect_group = QGroupBox("Quick Connect")
-        connect_layout = QHBoxLayout(connect_group)
+        # Quick Connect
+        connect_card, connect_layout = _make_card("Quick Connect")
 
+        connect_row = QHBoxLayout()
         self._server_entry = QLineEdit(config.auto_connect_server)
         self._server_entry.setPlaceholderText("Server IP")
-        connect_layout.addWidget(self._server_entry, 1)
-        connect_layout.addWidget(QLabel(":"))
+        connect_row.addWidget(self._server_entry, 1)
+        connect_row.addWidget(QLabel(":"))
         self._port_spin = QSpinBox()
         self._port_spin.setMinimum(1)
         self._port_spin.setMaximum(65535)
         self._port_spin.setValue(config.auto_connect_port)
         self._port_spin.setMaximumWidth(80)
-        connect_layout.addWidget(self._port_spin)
+        connect_row.addWidget(self._port_spin)
+        connect_layout.addLayout(connect_row)
 
-        layout.addWidget(connect_group)
+        layout.addWidget(connect_card)
 
-        # --- Game ---
-        game_group = QGroupBox("Game")
-        game_layout = QVBoxLayout(game_group)
-
-        self._premium_check = QCheckBox("Use premium Minecraft accounts")
-        self._premium_check.setChecked(config.premium)
-        game_layout.addWidget(self._premium_check)
+        # Game
+        game_card, game_layout = _make_card("Game")
 
         self._historical_check = QCheckBox("Show non-release versions")
         self._historical_check.setChecked(config.show_historical)
         game_layout.addWidget(self._historical_check)
 
-        layout.addWidget(game_group)
+        layout.addWidget(game_card)
 
-        # --- Forget me ---
+        # Forget me
         self._forget_me_check = QCheckBox("Forget my account details")
         self._forget_me_check.setStyleSheet(
-            f"color: {constants.ui.WARNING_COLOUR};",
+            f"color: {constants.ui.WARNING};",
         )
         layout.addWidget(self._forget_me_check)
 
-        # --- Buttons ---
+        # Apply
         button_row = QHBoxLayout()
-        button_row.setSpacing(8)
-
         apply_btn = QPushButton("Apply")
         apply_btn.clicked.connect(self._apply)
         button_row.addWidget(apply_btn)
-
         button_row.addStretch()
-
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.setObjectName("cancel_button")
-        cancel_btn.clicked.connect(self.reject)
-        button_row.addWidget(cancel_btn)
-
         layout.addLayout(button_row)
 
     def _on_ram_changed(self, value: int) -> None:
@@ -228,13 +248,7 @@ class ConfigDialogue(QDialog):
     def _apply(self) -> None:
         config = self._app.config
 
-        mc_path = self._mc_path_entry.text()
-        if _SYSTEM == "Windows":
-            if not mc_path.endswith("\\"):
-                mc_path += "\\"
-        else:
-            if not mc_path.endswith("/"):
-                mc_path += "/"
+        mc_path = Path(self._mc_path_entry.text())
 
         if self._forget_me_check.isChecked():
             config.email = ""
@@ -249,9 +263,7 @@ class ConfigDialogue(QDialog):
         config.resolution_height = self._height_spin.value()
         config.auto_connect_server = self._server_entry.text()
         config.auto_connect_port = self._port_spin.value()
-        config.premium = self._premium_check.isChecked()
         config.only_releases = not self._historical_check.isChecked()
 
         self._app.save_config()
-        self.accept()
         self._app.notify_config_changed()

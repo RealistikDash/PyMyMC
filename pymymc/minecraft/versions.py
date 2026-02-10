@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-import glob
-import platform
 import traceback
+from pathlib import Path
 
 from natsort import natsorted
 
 from pymymc.log import log_error
 from pymymc.minecraft.ports import VersionProvider
 
-_SYSTEM = platform.system()
+
+def _get_local_versions(minecraft_dir: Path) -> list[str]:
+    versions_dir = minecraft_dir / "versions"
+    if not versions_dir.is_dir():
+        return []
+    return [p.name for p in versions_dir.iterdir() if p.is_dir()]
 
 
-def _get_local_versions(minecraft_dir: str) -> list[str]:
-    sep = "\\" if _SYSTEM == "Windows" else "/"
-    return [path.split(sep)[-2] for path in glob.glob(minecraft_dir + "versions/*/")]
-
-
-def get_installed_versions(minecraft_dir: str) -> list[str]:
+def get_installed_versions(minecraft_dir: Path) -> list[str]:
     return natsorted(_get_local_versions(minecraft_dir), reverse=True)
 
 
@@ -47,7 +46,7 @@ def get_available_versions(
 
 def build_version_list(
     provider: VersionProvider,
-    minecraft_dir: str,
+    minecraft_dir: Path,
     show_historical: bool,
 ) -> list[str]:
     try:

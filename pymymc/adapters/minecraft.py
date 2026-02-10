@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 import shutil
+from pathlib import Path
 
 import minecraft_launcher_lib
 import requests
@@ -9,7 +9,7 @@ import requests
 from pymymc.minecraft.ports import InstallCallbacks
 
 
-class MCLibAdapter:
+class MinecraftAdapter:
     def get_release_ids(self) -> list[str]:
         data = requests.get(
             "https://launchermeta.mojang.com/mc/game/version_manifest.json",
@@ -23,7 +23,7 @@ class MCLibAdapter:
     def install(
         self,
         version: str,
-        minecraft_dir: str,
+        minecraft_dir: Path,
         callbacks: InstallCallbacks,
     ) -> None:
         callback_dict = {
@@ -33,16 +33,16 @@ class MCLibAdapter:
         }
         minecraft_launcher_lib.install.install_minecraft_version(
             version,
-            minecraft_dir,
+            str(minecraft_dir),
             callback=callback_dict,
         )
 
-    def is_installed(self, version: str, minecraft_dir: str) -> bool:
-        return os.path.exists(os.path.join(minecraft_dir, "versions", version))
+    def is_installed(self, version: str, minecraft_dir: Path) -> bool:
+        return (minecraft_dir / "versions" / version).exists()
 
-    def uninstall(self, version: str, minecraft_dir: str) -> None:
-        version_path = os.path.join(minecraft_dir, "versions", version)
-        if os.path.isdir(version_path):
+    def uninstall(self, version: str, minecraft_dir: Path) -> None:
+        version_path = minecraft_dir / "versions" / version
+        if version_path.is_dir():
             shutil.rmtree(version_path)
 
     def get_all_version_ids(self) -> list[str]:
@@ -54,11 +54,11 @@ class MCLibAdapter:
     def get_launch_command(
         self,
         version: str,
-        minecraft_dir: str,
+        minecraft_dir: Path,
         options: dict,
     ) -> list[str]:
         return minecraft_launcher_lib.command.get_minecraft_command(
             version,
-            minecraft_dir,
+            str(minecraft_dir),
             options,
         )
