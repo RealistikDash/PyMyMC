@@ -40,29 +40,13 @@ QLabel {{
     background-color: transparent;
 }}
 
-/* ── Title bar ── */
-QWidget#title_bar {{
-    background-color: {constants.ui.BG_DARKEST};
-}}
-
-QLabel#title_bar_label {{
-    font-size: 12px;
-    font-weight: bold;
-    color: {constants.ui.TEXT_SECONDARY};
-    padding-left: 12px;
-}}
-
-QPushButton#minimize_btn, QPushButton#close_btn {{
+/* ── Close button (floating overlay) ── */
+QPushButton#close_btn {{
     background: transparent;
     border: none;
     color: {constants.ui.TEXT_SECONDARY};
     font-size: 14px;
     padding: 0;
-}}
-
-QPushButton#minimize_btn:hover {{
-    color: {constants.ui.TEXT_PRIMARY};
-    background: {constants.ui.BG_ELEVATED};
 }}
 
 QPushButton#close_btn:hover {{
@@ -403,43 +387,19 @@ class _GlowBackground(QWidget):
         p.end()
 
 
-class _TitleBar(QWidget):
-    def __init__(self, parent: QWidget) -> None:
-        super().__init__(parent)
-        self.setObjectName("title_bar")
-        self.setFixedHeight(36)
+class _DraggableWindow(QWidget):
+    def __init__(self) -> None:
+        super().__init__()
         self._drag_pos: QPoint | None = None
-
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        label = QLabel("PyMyMC")
-        label.setObjectName("title_bar_label")
-        layout.addWidget(label)
-
-        layout.addStretch()
-
-        minimize_btn = QPushButton("\u2500")
-        minimize_btn.setObjectName("minimize_btn")
-        minimize_btn.setFixedSize(36, 36)
-        minimize_btn.clicked.connect(lambda: self.window().showMinimized())
-        layout.addWidget(minimize_btn)
-
-        close_btn = QPushButton("\u2715")
-        close_btn.setObjectName("close_btn")
-        close_btn.setFixedSize(36, 36)
-        close_btn.clicked.connect(lambda: self.window().close())
-        layout.addWidget(close_btn)
 
     def mousePressEvent(self, event: object) -> None:
         if event.button() == Qt.LeftButton:
-            self._drag_pos = event.globalPos() - self.window().frameGeometry().topLeft()
+            self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
             event.accept()
 
     def mouseMoveEvent(self, event: object) -> None:
         if self._drag_pos is not None and event.buttons() & Qt.LeftButton:
-            self.window().move(event.globalPos() - self._drag_pos)
+            self.move(event.globalPos() - self._drag_pos)
             event.accept()
 
     def mouseReleaseEvent(self, event: object) -> None:
@@ -466,23 +426,18 @@ class MainWindow:
         qt_app = QApplication.instance()
         qt_app.setStyleSheet(_STYLESHEET)
 
-        self._window = QWidget()
+        self._window = _DraggableWindow()
         self._window.setWindowTitle("PyMyMC")
         self._window.setWindowIcon(QIcon(constants.ui.LOGO_ICON))
         self._window.setWindowFlags(Qt.FramelessWindowHint)
         self._window.setFixedSize(720, 520)
 
-        root = QVBoxLayout(self._window)
+        root = QHBoxLayout(self._window)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # Title bar
-        root.addWidget(_TitleBar(self._window))
-
         # Body (sidebar + content)
-        body = QHBoxLayout()
-        body.setContentsMargins(0, 0, 0, 0)
-        body.setSpacing(0)
+        body = root
 
         # Sidebar
         sidebar = QWidget()
@@ -531,7 +486,14 @@ class MainWindow:
 
         content_layout.addWidget(self._stack)
         body.addWidget(content_area, 1)
-        root.addLayout(body, 1)
+
+        # Floating close button (top-right corner, always on top)
+        close_btn = QPushButton("\u2715", self._window)
+        close_btn.setObjectName("close_btn")
+        close_btn.setFixedSize(28, 28)
+        close_btn.move(self._window.width() - 28, 0)
+        close_btn.raise_()
+        close_btn.clicked.connect(self._window.close)
 
         # Wire sidebar to stack
         self._btn_group.buttonClicked[int].connect(self._stack.setCurrentIndex)
