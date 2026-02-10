@@ -4,7 +4,10 @@ from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import QPoint
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QRadialGradient
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QButtonGroup
 from PyQt5.QtWidgets import QHBoxLayout
@@ -365,7 +368,39 @@ QScrollArea {{
     background: transparent;
     border: none;
 }}
+
+/* ── Glow transparency ── */
+QStackedWidget {{
+    background: transparent;
+}}
+
+QStackedWidget > QWidget {{
+    background: transparent;
+}}
 """
+
+
+class _GlowBackground(QWidget):
+    def paintEvent(self, event: object) -> None:
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+
+        p.fillRect(self.rect(), QColor(constants.ui.BG_PRIMARY))
+
+        w, h = self.width(), self.height()
+        gradient = QRadialGradient(
+            w * constants.ui.GLOW_ORIGIN_X,
+            h * constants.ui.GLOW_ORIGIN_Y,
+            max(w, h) * constants.ui.GLOW_RADIUS_FACTOR,
+        )
+
+        glow = QColor(constants.ui.GLOW_COLOUR)
+        glow.setAlphaF(constants.ui.GLOW_OPACITY)
+        gradient.setColorAt(0.0, glow)
+        gradient.setColorAt(1.0, QColor(0, 0, 0, 0))
+
+        p.fillRect(self.rect(), gradient)
+        p.end()
 
 
 class _TitleBar(QWidget):
@@ -478,7 +513,12 @@ class MainWindow:
 
         body.addWidget(sidebar)
 
-        # Stacked content
+        # Stacked content with glow background
+        content_area = _GlowBackground()
+        content_layout = QVBoxLayout(content_area)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(0)
+
         self._stack = QStackedWidget()
 
         self._home_page = HomePage(self._app)
@@ -489,7 +529,8 @@ class MainWindow:
         self._stack.addWidget(self._versions_page)
         self._stack.addWidget(self._settings_page)
 
-        body.addWidget(self._stack, 1)
+        content_layout.addWidget(self._stack)
+        body.addWidget(content_area, 1)
         root.addLayout(body, 1)
 
         # Wire sidebar to stack

@@ -4,6 +4,7 @@ import platform
 import re
 from typing import TYPE_CHECKING
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QFrame
@@ -16,8 +17,6 @@ from PyQt5.QtWidgets import QScrollArea
 from PyQt5.QtWidgets import QSpinBox
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
-
-from PyQt5.QtCore import Qt
 
 from pymymc import constants
 
@@ -237,9 +236,7 @@ class SettingsPage(QWidget):
             self._mc_path_entry.setText(path)
 
     def _browse_java(self) -> None:
-        file_filter = (
-            "Executables (*.exe)" if _SYSTEM == "Windows" else "All Files (*)"
-        )
+        file_filter = "Executables (*.exe)" if _SYSTEM == "Windows" else "All Files (*)"
         path, _ = QFileDialog.getOpenFileName(
             self,
             "Select Java Executable",

@@ -28,6 +28,13 @@ DANGER = "#EF4444"
 DANGER_HOVER = "#DC2626"
 WARNING = "#F59E0B"
 
+# Glow (radial gradient on content area)
+GLOW_COLOUR = ACCENT
+GLOW_OPACITY = 0.07
+GLOW_RADIUS_FACTOR = 0.7
+GLOW_ORIGIN_X = 1.0  # 0.0 = left, 1.0 = right
+GLOW_ORIGIN_Y = 1.0  # 0.0 = top, 1.0 = bottom
+
 # Legacy aliases
 WARNING_COLOUR = WARNING
 
