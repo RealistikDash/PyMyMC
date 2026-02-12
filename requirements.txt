@@ -1,5 +1,4 @@
 colorama
 minecraft_launcher_lib
-pypresence
 PyQt5
 requests

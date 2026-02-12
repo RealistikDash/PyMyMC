@@ -15,7 +15,6 @@ from pymymc.log import log_info
 from pymymc.log import print_banner
 from pymymc.minecraft.versions import get_available_versions
 from pymymc.minecraft.versions import get_installed_versions
-from pymymc.services.discord import DiscordRPC
 
 APP_VERSION = "0.3.0"
 
@@ -54,7 +53,6 @@ class App:
         self._config_manager = ConfigManager()
         self.config = self._config_manager.load()
         self._minecraft = MinecraftAdapter()
-        self.rpc = DiscordRPC(constants.rpc.ENABLED, constants.rpc.CLIENT_ID)
 
         self.install_callbacks = ProgressCallbacks()
         self._ui_refresh: Callable[[], None] = lambda: None
@@ -155,6 +153,5 @@ class App:
         )
 
         is_vanilla = self._minecraft.is_vanilla_version(version)
-        self.rpc.set_playing(version, username, config.premium, is_vanilla)
 
         subprocess.call(command)

@@ -13,7 +13,6 @@ A lightweight Minecraft launcher built with Python and PyQt5.
 - **Quick Connect** — Auto-connect to a server on launch.
 - **Custom resolution** — Launch with a specific window size.
 - **Non-premium support** — Works with both premium and offline accounts.
-- **Discord Rich Presence** — Optional integration via pypresence.
 
 ## Installation
 
