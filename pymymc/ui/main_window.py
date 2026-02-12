@@ -221,8 +221,7 @@ QPushButton#play_button {{
 }}
 
 QPushButton#play_button:hover {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-        stop:0 {constants.ui.ACCENT_LIGHT}, stop:1 #C084FC);
+    background-color: {constants.ui.ACCENT_LIGHT};
 }}
 
 /* ── Checkboxes ── */
