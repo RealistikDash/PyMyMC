@@ -2,7 +2,8 @@
 
 A lightweight Minecraft launcher built with Python and PyQt5.
 
-<img width="758" height="551" alt="image" src="https://github.com/user-attachments/assets/9e9af4b5-a49d-4fe0-b6d2-d09dc45ac35d" />
+<img width="1530" height="1087" alt="image" src="https://github.com/user-attachments/assets/a91f009f-2a77-4bef-8204-12ddbd6e2074" />
+
 
 
 ## Features
