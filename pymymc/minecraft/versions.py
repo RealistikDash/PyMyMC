@@ -3,9 +3,8 @@ from __future__ import annotations
 import traceback
 from pathlib import Path
 
-from natsort import natsorted
-
 from pymymc.log import log_error
+from pymymc.minecraft.helpers import sort_minecraft_versions
 from pymymc.minecraft.ports import VersionProvider
 
 
@@ -17,7 +16,7 @@ def _get_local_versions(minecraft_dir: Path) -> list[str]:
 
 
 def get_installed_versions(minecraft_dir: Path) -> list[str]:
-    return natsorted(_get_local_versions(minecraft_dir), reverse=True)
+    return sort_minecraft_versions(_get_local_versions(minecraft_dir), reverse=True)
 
 
 def get_available_versions(
@@ -41,7 +40,7 @@ def get_available_versions(
         except Exception:
             pass
 
-    return natsorted(versions, reverse=True)
+    return sort_minecraft_versions(versions, reverse=True)
 
 
 def build_version_list(
@@ -64,4 +63,4 @@ def build_version_list(
     if not show_historical:
         versions = [v for v in versions if not v.startswith("b")]
 
-    return natsorted(versions, reverse=True)
+    return sort_minecraft_versions(versions, reverse=True)
