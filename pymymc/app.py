@@ -27,7 +27,7 @@ class InstallResult(Enum):
 
 class ProgressCallbacks:
     def __init__(self) -> None:
-        self.on_status: Callable[[str], None] = lambda s: print(s)
+        self.on_status: Callable[[str], None] = lambda s: log_info(s)
         self.on_progress: Callable[[int], None] = lambda v: None
         self.on_max: Callable[[int], None] = lambda m: None
         self.on_complete: Callable[[], None] = lambda: None
