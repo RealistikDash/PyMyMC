@@ -128,6 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Nuitka
+*.build/
+*.dist/
+*.onefile-build/
+nuitka-crash-report.xml
+
 #my ones
 .minecraft/
 logs/
@@ -135,3 +141,4 @@ config.json
 .mixin.out/
 .claude/
 CLAUDE.md
+.DS_Store

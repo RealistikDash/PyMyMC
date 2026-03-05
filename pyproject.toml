@@ -1,0 +1,20 @@
+[project]
+name = "pymymc"
+version = "0.3.0"
+description = "A lightweight Minecraft launcher GUI"
+requires-python = ">=3.9"
+dependencies = [
+    "colorama",
+    "minecraft_launcher_lib",
+    "PyQt5",
+    "requests",
+]
+
+[project.optional-dependencies]
+build = ["nuitka"]
+
+[tool.setuptools.packages.find]
+include = ["pymymc*"]
+
+[tool.setuptools.package-data]
+pymymc = ["resources/*"]

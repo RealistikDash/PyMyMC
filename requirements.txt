@@ -1,4 +1,0 @@
-colorama
-minecraft_launcher_lib
-PyQt5
-requests

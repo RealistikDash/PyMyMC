@@ -50,6 +50,9 @@ DIALOGUE_SHADOW_BLUR = 24
 DIALOGUE_SHADOW_OFFSET = 6
 
 # Resources
-_RESOURCES_DIR = Path(__file__).resolve().parent.parent / "resources"
+_PKG_DIR = Path(__file__).resolve().parent.parent
+_RESOURCES_DIR = _PKG_DIR / "resources"
+if not _RESOURCES_DIR.is_dir():
+    _RESOURCES_DIR = _PKG_DIR.parent / "resources"
 LOGO_SMALL = str(_RESOURCES_DIR / "pymymc_logo_small.png")
 LOGO_ICON = str(_RESOURCES_DIR / "pymymc_ico.ico")
