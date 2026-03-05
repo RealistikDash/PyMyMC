@@ -17,11 +17,16 @@ A lightweight Minecraft launcher built with Python and PyQt5.
 
 ## Installation
 
-Requires Python 3.9+.
+Download the latest binary from [GitHub Releases](https://github.com/RealistikDash/PyMyMC/releases).
+
+## Development
 
 ```bash
-pip install .
-python -m pymymc
+make install   # Install dependencies
+make run       # Run the launcher
+make lint      # Lint/format (ruff via pre-commit)
+make build     # Build binary (Nuitka)
+make clean     # Remove build artifacts
 ```
 
 ## Configuration

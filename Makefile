@@ -1,19 +1,23 @@
 #!/usr/bin/make -f
 
 install:
-	python3 -m pip install -e .
+	uv sync
 
 run:
-	python3 -m pymymc
+	uv run python -m pymymc
 
 build:
-	python3 -m nuitka \
+	uv sync --extra build
+	uv run python -m nuitka \
 		--mode=app \
 		--enable-plugin=pyqt5 \
 		--include-data-dir=pymymc/resources=resources \
 		--include-package-data=minecraft_launcher_lib \
 		--output-dir=dist \
 		pymymc
+
+lint:
+	uvx pre-commit run --all-files
 
 clean:
 	rm -rf dist/*.build dist/*.dist dist/*.onefile-build
