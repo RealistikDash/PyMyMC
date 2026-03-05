@@ -13,6 +13,7 @@ jobs:
           - runner: windows-latest
             platform: windows
             arch: x86_64
+            python: "3.9"
           - runner: ubuntu-latest
             platform: linux
             arch: x86_64
@@ -31,7 +32,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
 
       - name: Install Python
-        run: uv python install
+        run: uv python install ${{ matrix.python || '' }}
 
       - name: Install Linux display dependencies
         if: matrix.platform == 'linux'
