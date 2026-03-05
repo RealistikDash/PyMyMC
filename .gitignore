@@ -139,3 +139,4 @@ config.json
 .claude/
 CLAUDE.md
 .DS_Store
+.ruff_cache/

@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            platform: windows
+            arch: x86_64
+          - runner: windows-11-arm
+            platform: windows
+            arch: arm64
+          - runner: ubuntu-latest
+            platform: linux
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - runner: macos-latest
+            platform: macos
+            arch: arm64
+
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install Linux display dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libxkbcommon-x11-0 libxcb-xinerama0 libegl1
+
+      - name: Build
+        run: |
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            xvfb-run make build
+          else
+            make build
+          fi
+
+      - name: Package (macOS)
+        if: matrix.platform == 'macos'
+        run: >
+          tar -czf pymymc-${{ github.ref_name }}-macos-${{ matrix.arch }}.tar.gz
+          -C dist pymymc.app
+
+      - name: Package (Linux)
+        if: matrix.platform == 'linux'
+        run: >
+          tar -czf pymymc-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz
+          -C dist/pymymc.dist .
+
+      - name: Package (Windows)
+        if: matrix.platform == 'windows'
+        run: >
+          7z a pymymc-${{ github.ref_name }}-windows-${{ matrix.arch }}.zip
+          ./dist/pymymc.dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pymymc-${{ matrix.platform }}-${{ matrix.arch }}
+          path: pymymc-${{ github.ref_name }}-*
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: PyMyMC ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/*
