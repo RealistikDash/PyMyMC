@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dependencies = [
     "colorama",
     "minecraft_launcher_lib",
-    "PyQt5",
+    "PyQt5>=5.15,<5.16",
     "requests",
 ]
 
