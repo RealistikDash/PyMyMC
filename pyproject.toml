@@ -17,6 +17,13 @@ dependencies = [
 [project.optional-dependencies]
 build = ["nuitka"]
 
+[tool.uv]
+constraint-dependencies = [
+    "PyQt5<=5.15.2; sys_platform == 'win32'",
+    "PyQt5>=5.15.7; sys_platform != 'win32'",
+]
+environments = ["sys_platform == 'win32'", "sys_platform != 'win32'"]
+
 [tool.setuptools.packages.find]
 include = ["pymymc*"]
 
