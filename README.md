@@ -17,10 +17,10 @@ A lightweight Minecraft launcher built with Python and PyQt5.
 
 ## Installation
 
-Requires Python 3.7+.
+Requires Python 3.9+.
 
 ```bash
-pip install -r requirements.txt
+pip install .
 python -m pymymc
 ```
 
