@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
-from enum import Enum, auto
+from enum import Enum
+from enum import auto
 from threading import Thread
 from typing import Callable
 
 from pymymc.adapters.minecraft import MinecraftAdapter
 from pymymc.config import ConfigManager
-from pymymc.log import log_info, print_banner
-from pymymc.minecraft.versions import get_available_versions, get_installed_versions
+from pymymc.log import log_info
+from pymymc.log import print_banner
+from pymymc.minecraft.versions import get_available_versions
+from pymymc.minecraft.versions import get_installed_versions
 
 APP_VERSION = "0.3.0"
 

@@ -30,4 +30,5 @@ select = ["F", "E", "W", "I", "UP", "T10", "C4", "B"]
 keep-runtime-typing = true
 
 [tool.ruff.lint.isort]
+force-single-line = true
 required-imports = ["from __future__ import annotations"]
