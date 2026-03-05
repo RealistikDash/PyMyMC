@@ -18,3 +18,16 @@ include = ["pymymc*"]
 
 [tool.setuptools.package-data]
 pymymc = ["resources/*"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "T10", "C4", "B"]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]

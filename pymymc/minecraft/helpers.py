@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import re
-from typing import Pattern
+from re import Pattern
 
 # Compiled regex patterns for performance
-RELEASE_PATTERN: Pattern = re.compile(r'^(\d+)\.(\d+)(?:\.(\d+))?$')
-RC_PATTERN: Pattern = re.compile(r'^(\d+)\.(\d+)(?:\.(\d+))?-rc(\d+)$')
-PRE_PATTERN: Pattern = re.compile(r'^(\d+)\.(\d+)(?:\.(\d+))?-pre(\d+)$')
-MODERN_SNAPSHOT_PATTERN: Pattern = re.compile(r'^(\d+)\.(\d+)-snapshot-(\d+)$')
-WEEK_SNAPSHOT_PATTERN: Pattern = re.compile(r'^(\d{2})w(\d{2})([a-z])$')
-BETA_PATTERN: Pattern = re.compile(r'^b(\d+)\.(\d+)(?:\.(\d+)|_(\d+))?([a-z])?$')
-ALPHA_PATTERN: Pattern = re.compile(r'^a(\d+)\.(\d+)(?:\.(\d+)|_(\d+))?([a-z])?$')
+RELEASE_PATTERN: Pattern = re.compile(r"^(\d+)\.(\d+)(?:\.(\d+))?$")
+RC_PATTERN: Pattern = re.compile(r"^(\d+)\.(\d+)(?:\.(\d+))?-rc(\d+)$")
+PRE_PATTERN: Pattern = re.compile(r"^(\d+)\.(\d+)(?:\.(\d+))?-pre(\d+)$")
+MODERN_SNAPSHOT_PATTERN: Pattern = re.compile(r"^(\d+)\.(\d+)-snapshot-(\d+)$")
+WEEK_SNAPSHOT_PATTERN: Pattern = re.compile(r"^(\d{2})w(\d{2})([a-z])$")
+BETA_PATTERN: Pattern = re.compile(r"^b(\d+)\.(\d+)(?:\.(\d+)|_(\d+))?([a-z])?$")
+ALPHA_PATTERN: Pattern = re.compile(r"^a(\d+)\.(\d+)(?:\.(\d+)|_(\d+))?([a-z])?$")
 
 
 def _parse_version(version: str) -> tuple:
@@ -64,11 +64,13 @@ def _parse_version(version: str) -> tuple:
     match = WEEK_SNAPSHOT_PATTERN.match(version)
     if match:
         year, week, letter = match.groups()
-        letter_offset = ord(letter) - ord('a')
+        letter_offset = ord(letter) - ord("a")
         return (4, int(year), int(week), letter_offset, 0, "")
 
     # Special versions (contains non-standard characters, but starts with digits)
-    if version[0].isdigit() and any(c.isalpha() and c not in 'abpresw-.' for c in version):
+    if version[0].isdigit() and any(
+        c.isalpha() and c not in "abpresw-." for c in version
+    ):
         # Extract leading digits for rough sorting
         digits = ""
         for c in version:
@@ -84,7 +86,7 @@ def _parse_version(version: str) -> tuple:
     if match:
         major, minor, patch1, patch2, letter = match.groups()
         patch = int(patch1 or patch2 or 0)
-        letter_offset = ord(letter) - ord('a') if letter else 0
+        letter_offset = ord(letter) - ord("a") if letter else 0
         return (2, int(major), int(minor), patch, letter_offset, "")
 
     # Alpha versions: a1.X.X or a1.X_XX
@@ -92,7 +94,7 @@ def _parse_version(version: str) -> tuple:
     if match:
         major, minor, patch1, patch2, letter = match.groups()
         patch = int(patch1 or patch2 or 0)
-        letter_offset = ord(letter) - ord('a') if letter else 0
+        letter_offset = ord(letter) - ord("a") if letter else 0
         return (1, int(major), int(minor), patch, letter_offset, "")
 
     # Unknown/malformed versions

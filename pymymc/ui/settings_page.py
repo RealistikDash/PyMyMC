@@ -6,18 +6,20 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QScrollArea
-from PyQt5.QtWidgets import QSpinBox
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QFileDialog,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 from pymymc import constants
 

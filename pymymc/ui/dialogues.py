@@ -1,23 +1,23 @@
 from __future__ import annotations
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import (
+    QApplication,
+    QDialog,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+)
 
 from pymymc.constants import ui as c
-from pymymc.log import log_error
-from pymymc.log import log_info
-from pymymc.log import log_warning
+from pymymc.log import log_error, log_info, log_warning
 
 _ICON_INFO = "\u2139"
 _ICON_ERROR = "\u2715"
-_ICON_WARNING = "\u26A0"
+_ICON_WARNING = "\u26a0"
 
 _CARD_STYLE = (
     f"QFrame#dialog_card {{ background: {c.BG_SURFACE};"

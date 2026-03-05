@@ -2,23 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import QObject
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QListWidget
-from PyQt5.QtWidgets import QListWidgetItem
-from PyQt5.QtWidgets import QProgressBar
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import QObject, Qt, pyqtSignal
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from pymymc.app import InstallResult
-from pymymc.ui.dialogues import error_box
-from pymymc.ui.dialogues import message_box
+from pymymc.ui.dialogues import error_box, message_box
 
 if TYPE_CHECKING:
     from pymymc.app import App

@@ -3,8 +3,7 @@ from __future__ import annotations
 import random
 from datetime import datetime
 
-from colorama import Fore
-from colorama import init
+from colorama import Fore, init
 
 init()
 

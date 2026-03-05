@@ -3,20 +3,18 @@ from __future__ import annotations
 import platform
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import QPoint
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QIcon
-from PyQt5.QtGui import QPainter
-from PyQt5.QtGui import QRadialGradient
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QButtonGroup
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QStackedWidget
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtGui import QColor, QIcon, QPainter, QRadialGradient
+from PyQt5.QtWidgets import (
+    QApplication,
+    QButtonGroup,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from pymymc import constants
 from pymymc.log import log_info
