@@ -11,6 +11,7 @@ build:
 		--mode=app \
 		--enable-plugin=pyqt5 \
 		--include-data-dir=pymymc/resources=resources \
+		--include-package-data=minecraft_launcher_lib \
 		--output-dir=dist \
 		pymymc
 
