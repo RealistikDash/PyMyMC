@@ -11,6 +11,7 @@ build:
 	uv run python -m nuitka \
 		--mode=app \
 		--enable-plugin=pyside6 \
+		--assume-yes-for-download \
 		--include-data-dir=pymymc/resources=resources \
 		--include-package-data=minecraft_launcher_lib \
 		--output-dir=dist \
