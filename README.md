@@ -1,6 +1,6 @@
 # PyMyMC
 
-A lightweight Minecraft launcher built with Python and PyQt5.
+A lightweight Minecraft launcher built with Python and PySide6.
 
 <img width="1530" height="1087" alt="image" src="https://github.com/user-attachments/assets/a91f009f-2a77-4bef-8204-12ddbd6e2074" />
 

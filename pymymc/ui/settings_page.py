@@ -5,19 +5,19 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QScrollArea
-from PyQt5.QtWidgets import QSpinBox
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QFileDialog
+from PySide6.QtWidgets import QFrame
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QScrollArea
+from PySide6.QtWidgets import QSpinBox
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QWidget
 
 from pymymc import constants
 
@@ -35,7 +35,7 @@ def _make_card(title: str) -> tuple[QFrame, QVBoxLayout]:
     shadow = QGraphicsDropShadowEffect()
     shadow.setBlurRadius(24)
     shadow.setOffset(0, 6)
-    shadow.setColor(Qt.black)
+    shadow.setColor(Qt.GlobalColor.black)
     card.setGraphicsEffect(shadow)
 
     card_layout = QVBoxLayout(card)
@@ -61,7 +61,7 @@ class SettingsPage(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
         outer.addWidget(scroll)
 
         container = QWidget()

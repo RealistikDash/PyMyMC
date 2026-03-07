@@ -3,20 +3,20 @@ from __future__ import annotations
 import platform
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import QPoint
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QIcon
-from PyQt5.QtGui import QPainter
-from PyQt5.QtGui import QRadialGradient
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QButtonGroup
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QStackedWidget
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import QPoint
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
+from PySide6.QtGui import QIcon
+from PySide6.QtGui import QPainter
+from PySide6.QtGui import QRadialGradient
+from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QButtonGroup
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QStackedWidget
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QWidget
 
 from pymymc import constants
 from pymymc.log import log_info
@@ -403,7 +403,7 @@ QStackedWidget > QWidget {{
 class _GlowBackground(QWidget):
     def paintEvent(self, event: object) -> None:
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         p.fillRect(self.rect(), QColor(constants.ui.BG_PRIMARY))
 
@@ -429,13 +429,15 @@ class _DraggableWindow(QWidget):
         self._drag_pos: QPoint | None = None
 
     def mousePressEvent(self, event: object) -> None:
-        if event.button() == Qt.LeftButton:
-            self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_pos = (
+                event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            )
             event.accept()
 
     def mouseMoveEvent(self, event: object) -> None:
-        if self._drag_pos is not None and event.buttons() & Qt.LeftButton:
-            self.move(event.globalPos() - self._drag_pos)
+        if self._drag_pos is not None and event.buttons() & Qt.MouseButton.LeftButton:
+            self.move(event.globalPosition().toPoint() - self._drag_pos)
             event.accept()
 
     def mouseReleaseEvent(self, event: object) -> None:
@@ -465,7 +467,7 @@ class MainWindow:
         self._window = _DraggableWindow()
         self._window.setWindowTitle("PyMyMC")
         self._window.setWindowIcon(QIcon(constants.ui.LOGO_ICON))
-        self._window.setWindowFlags(Qt.FramelessWindowHint)
+        self._window.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self._window.setFixedSize(720, 520)
 
         root = QHBoxLayout(self._window)
@@ -498,7 +500,7 @@ class MainWindow:
         # Status area at bottom of sidebar
         version_label = QLabel(f"v{self._app.version}")
         version_label.setObjectName("status_version")
-        version_label.setAlignment(Qt.AlignCenter)
+        version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sidebar_layout.addWidget(version_label)
 
         body.addWidget(sidebar)
@@ -531,7 +533,7 @@ class MainWindow:
         close_btn.clicked.connect(self._window.close)
 
         # Wire sidebar to stack
-        self._btn_group.buttonClicked[int].connect(self._stack.setCurrentIndex)
+        self._btn_group.idClicked.connect(self._stack.setCurrentIndex)
         home_btn.setChecked(True)
 
         # Initial data load
@@ -544,4 +546,4 @@ class MainWindow:
 
     def run(self) -> None:
         self._window.show()
-        QApplication.instance().exec_()
+        QApplication.instance().exec()

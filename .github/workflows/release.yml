@@ -13,9 +13,15 @@ jobs:
           - runner: windows-latest
             platform: windows
             arch: x86_64
+          - runner: windows-11-arm
+            platform: windows
+            arch: arm64
           - runner: ubuntu-latest
             platform: linux
             arch: x86_64
+          - runner: ubuntu-24.04-arm
+            platform: linux
+            arch: aarch64
           - runner: macos-latest
             platform: macos
             arch: arm64
@@ -32,13 +38,6 @@ jobs:
 
       - name: Install Python
         run: uv python install
-
-      - name: Install Qt
-        if: matrix.platform == 'windows'
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: "5.15.2"
-          setup-python: false
 
       - name: Install Linux display dependencies
         if: matrix.platform == 'linux'

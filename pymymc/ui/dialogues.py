@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QVBoxLayout
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QDialog
+from PySide6.QtWidgets import QFrame
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QVBoxLayout
 
 from pymymc.constants import ui as c
 from pymymc.log import log_error
@@ -50,9 +50,9 @@ def _show_dialog(
 ) -> None:
     parent = QApplication.activeWindow()
     dlg = QDialog(parent)
-    dlg.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+    dlg.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
     dlg.setModal(True)
-    dlg.setAttribute(Qt.WA_TranslucentBackground)
+    dlg.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
     # Card frame — the visible rounded container
     card = QFrame(dlg)
@@ -63,14 +63,14 @@ def _show_dialog(
     shadow = QGraphicsDropShadowEffect()
     shadow.setBlurRadius(c.DIALOGUE_SHADOW_BLUR)
     shadow.setOffset(0, c.DIALOGUE_SHADOW_OFFSET)
-    shadow.setColor(Qt.black)
+    shadow.setColor(Qt.GlobalColor.black)
     card.setGraphicsEffect(shadow)
 
     # Icon
     icon_lbl = QLabel(icon)
     icon_lbl.setStyleSheet(_ICON_STYLE.format(accent=accent))
     icon_lbl.setFixedWidth(c.DIALOGUE_ICON_WIDTH)
-    icon_lbl.setAlignment(Qt.AlignTop)
+    icon_lbl.setAlignment(Qt.AlignmentFlag.AlignTop)
 
     # Title
     title_lbl = QLabel(title)
@@ -85,7 +85,7 @@ def _show_dialog(
     # OK button
     ok_btn = QPushButton("OK")
     ok_btn.setFixedWidth(c.DIALOGUE_BTN_WIDTH)
-    ok_btn.setCursor(Qt.PointingHandCursor)
+    ok_btn.setCursor(Qt.CursorShape.PointingHandCursor)
     ok_btn.setStyleSheet(_BTN_STYLE.format(accent=accent))
     ok_btn.clicked.connect(dlg.accept)
 
@@ -96,7 +96,7 @@ def _show_dialog(
     text_col.addWidget(content_lbl)
 
     top_row = QHBoxLayout()
-    top_row.setAlignment(Qt.AlignTop)
+    top_row.setAlignment(Qt.AlignmentFlag.AlignTop)
     top_row.addWidget(icon_lbl)
     top_row.addLayout(text_col, 1)
 
@@ -120,7 +120,7 @@ def _show_dialog(
     dlg_layout.setContentsMargins(0, 0, 0, 0)
     dlg_layout.addWidget(card)
 
-    dlg.exec_()
+    dlg.exec()
 
 
 def message_box(title: str, content: str) -> None:

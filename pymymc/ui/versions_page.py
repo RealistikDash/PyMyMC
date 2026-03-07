@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import QObject
-from PyQt5.QtCore import Qt
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QListWidget
-from PyQt5.QtWidgets import QListWidgetItem
-from PyQt5.QtWidgets import QProgressBar
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import QObject
+from PySide6.QtCore import Qt
+from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QListWidget
+from PySide6.QtWidgets import QListWidgetItem
+from PySide6.QtWidgets import QProgressBar
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QWidget
 
 from pymymc.app import InstallResult
 from pymymc.ui.dialogues import error_box
@@ -25,10 +25,10 @@ if TYPE_CHECKING:
 
 
 class _ProgressSignals(QObject):
-    status_changed = pyqtSignal(str)
-    progress_changed = pyqtSignal(int)
-    max_changed = pyqtSignal(int)
-    install_finished = pyqtSignal()
+    status_changed = Signal(str)
+    progress_changed = Signal(int)
+    max_changed = Signal(int)
+    install_finished = Signal()
 
 
 class VersionsPage(QWidget):
@@ -152,7 +152,7 @@ class VersionsPage(QWidget):
             installed = version in self._installed
             label = f"{version}  [installed]" if installed else version
             item = QListWidgetItem(label)
-            item.setData(Qt.UserRole, version)
+            item.setData(Qt.ItemDataRole.UserRole, version)
             self._version_list.addItem(item)
 
         self._download_btn.setEnabled(False)
@@ -166,7 +166,7 @@ class VersionsPage(QWidget):
             self._download_btn.setEnabled(False)
             self._delete_btn.setEnabled(False)
             return
-        version = item.data(Qt.UserRole)
+        version = item.data(Qt.ItemDataRole.UserRole)
         installed = version in self._installed
         self._download_btn.setEnabled(not installed)
         self._delete_btn.setEnabled(installed)
@@ -175,7 +175,7 @@ class VersionsPage(QWidget):
         item = self._version_list.currentItem()
         if item is None:
             return
-        version = item.data(Qt.UserRole)
+        version = item.data(Qt.ItemDataRole.UserRole)
         result = self._app.install(version)
 
         if result == InstallResult.ALREADY_INSTALLED:
@@ -201,7 +201,7 @@ class VersionsPage(QWidget):
         item = self._version_list.currentItem()
         if item is None:
             return
-        version = item.data(Qt.UserRole)
+        version = item.data(Qt.ItemDataRole.UserRole)
         self._app.uninstall(version)
         self._installed.discard(version)
         self._apply_filter()

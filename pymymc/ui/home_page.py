@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QButtonGroup
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QComboBox
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QHBoxLayout
-from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QButtonGroup
+from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QComboBox
+from PySide6.QtWidgets import QFrame
+from PySide6.QtWidgets import QGraphicsDropShadowEffect
+from PySide6.QtWidgets import QHBoxLayout
+from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QWidget
 
 from pymymc import constants
 from pymymc.ui.dialogues import warning_box
@@ -31,7 +31,7 @@ def _make_card() -> QFrame:
     shadow = QGraphicsDropShadowEffect()
     shadow.setBlurRadius(24)
     shadow.setOffset(0, 6)
-    shadow.setColor(Qt.black)
+    shadow.setColor(Qt.GlobalColor.black)
     card.setGraphicsEffect(shadow)
     return card
 
@@ -52,19 +52,19 @@ class HomePage(QWidget):
         logo_pixmap = QPixmap(constants.ui.LOGO_SMALL)
         logo_label = QLabel()
         logo_label.setPixmap(logo_pixmap)
-        logo_label.setAlignment(Qt.AlignCenter)
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(logo_label)
 
         layout.addSpacing(8)
 
         title = QLabel("PyMyMC")
         title.setObjectName("page_title_logo")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         subtitle = QLabel("by RealistikDash")
         subtitle.setObjectName("subtitle")
-        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitle)
 
         layout.addSpacing(12)
@@ -125,14 +125,14 @@ class HomePage(QWidget):
         self._pw_label.setSizePolicy(sp)
         pw_row.addWidget(self._pw_label)
         self._password_entry = QLineEdit()
-        self._password_entry.setEchoMode(QLineEdit.Password)
+        self._password_entry.setEchoMode(QLineEdit.EchoMode.Password)
         sp = self._password_entry.sizePolicy()
         sp.setRetainSizeWhenHidden(True)
         self._password_entry.setSizePolicy(sp)
         pw_row.addWidget(self._password_entry, 1)
         card_layout.addLayout(pw_row)
 
-        self._account_group.buttonClicked[int].connect(
+        self._account_group.idClicked.connect(
             self._on_account_mode_changed,
         )
 

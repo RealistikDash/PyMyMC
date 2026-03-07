@@ -14,7 +14,7 @@ from pymymc.log import print_banner
 from pymymc.minecraft.versions import get_available_versions
 from pymymc.minecraft.versions import get_installed_versions
 
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.4.0"
 
 
 class InstallResult(Enum):

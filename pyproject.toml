@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pymymc"
-version = "0.3.0"
+version = "0.4.0"
 description = "A lightweight Minecraft launcher GUI"
 requires-python = ">=3.9"
 dependencies = [
     "colorama",
     "minecraft_launcher_lib",
-    "PyQt5>=5.15,<5.16",
+    "PySide6",
     "requests",
 ]
 
