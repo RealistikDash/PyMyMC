@@ -205,8 +205,10 @@ class HomePage(QWidget):
 
         self._app.config.premium = self._premium_btn.isChecked()
         self.window().close()
-        self._app.play(
+        error = self._app.play(
             username=username,
             version=version,
             remember_me=remember_me,
         )
+        if error:
+            warning_box("Launch Error", error)

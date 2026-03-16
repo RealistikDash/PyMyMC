@@ -6,10 +6,30 @@ import platform
 from dataclasses import dataclass
 from pathlib import Path
 
+from pymymc.log import log_warning
+
 if platform.system() == "Windows":
-    _DEFAULT_MC_DIR = Path(os.environ["APPDATA"]) / ".minecraft"
+    _DEFAULT_MC_DIR = (
+        Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+        / ".minecraft"
+    )
 else:
     _DEFAULT_MC_DIR = Path.home() / ".minecraft"
+
+
+def _default_config_dir() -> Path:
+    system = platform.system()
+    if system == "Windows":
+        base = Path(
+            os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"),
+        )
+    elif system == "Darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    d = base / "PyMyMC"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 @dataclass
@@ -19,7 +39,7 @@ class AppConfig:
     uuid: str = ""
     access_token: str = ""
     premium: bool = True
-    last_selected: str = "1.15.1"
+    last_selected: str = ""
     only_releases: bool = True
     java_path: str = ""
     custom_resolution: bool = False
@@ -53,8 +73,11 @@ _KEY_MAP = {
 _REVERSE_KEY_MAP = {v: k for k, v in _KEY_MAP.items()}
 
 
+_DEFAULT_CONFIG_PATH = _default_config_dir() / "config.json"
+
+
 class ConfigManager:
-    def __init__(self, path: Path = Path("config.json")) -> None:
+    def __init__(self, path: Path = _DEFAULT_CONFIG_PATH) -> None:
         self._path = path
 
     def load(self) -> AppConfig:
@@ -63,8 +86,14 @@ class ConfigManager:
             self.save(config)
             return config
 
-        with open(self._path) as f:
-            raw = json.load(f)
+        try:
+            with open(self._path) as f:
+                raw = json.load(f)
+        except (json.JSONDecodeError, PermissionError, OSError) as e:
+            log_warning(f"Config file corrupted or unreadable ({e}), using defaults.")
+            config = AppConfig()
+            self.save(config)
+            return config
 
         if not raw:
             config = AppConfig()

@@ -44,21 +44,19 @@ class ProgressCallbacks:
 
 
 class App:
-    def __init__(self) -> None:
+    def __init__(self, minecraft: MinecraftAdapter | None = None) -> None:
         print_banner()
-        log_info("Checking internet status...")
 
         self._config_manager = ConfigManager()
         self.config = self._config_manager.load()
-        self._minecraft = MinecraftAdapter()
+        self._minecraft = minecraft or MinecraftAdapter()
 
         self.install_callbacks = ProgressCallbacks()
         self._ui_refresh: Callable[[], None] = lambda: None
         self._available_versions_cache: dict[bool, list[str]] = {}
-
-        releases = get_available_versions(self._minecraft, True)
-        self._available_versions_cache[True] = releases
-        self.has_internet = len(releases) > 0
+        self._install_thread: Thread | None = None
+        self._internet_checked = False
+        self.has_internet = True
 
     @property
     def version(self) -> str:
@@ -70,7 +68,16 @@ class App:
     def get_versions(self) -> list[str]:
         return get_installed_versions(self.config.minecraft_dir)
 
+    def _ensure_versions_loaded(self) -> None:
+        if not self._internet_checked:
+            log_info("Checking internet status...")
+            releases = get_available_versions(self._minecraft, True)
+            self._available_versions_cache[True] = releases
+            self.has_internet = len(releases) > 0
+            self._internet_checked = True
+
     def get_available_versions(self, releases_only: bool) -> list[str]:
+        self._ensure_versions_loaded()
         if releases_only not in self._available_versions_cache:
             self._available_versions_cache[releases_only] = get_available_versions(
                 self._minecraft,
@@ -99,7 +106,9 @@ class App:
             )
             self.install_callbacks.set_complete()
 
-        Thread(target=_run).start()
+        thread = Thread(target=_run, daemon=True)
+        self._install_thread = thread
+        thread.start()
         return InstallResult.DOWNLOADING
 
     def uninstall(self, version: str) -> None:
@@ -111,7 +120,7 @@ class App:
         username: str,
         version: str,
         remember_me: bool,
-    ) -> None:
+    ) -> str | None:
         config = self.config
 
         if config.premium:
@@ -119,7 +128,7 @@ class App:
 
         options = {
             "username": username,
-            "uuid": str(hashlib.md5(str.encode(username)).digest()),
+            "uuid": hashlib.md5(username.encode()).hexdigest(),
             "token": "",
             "launcherName": "PyMyMC",
             "gameDirectory": str(config.minecraft_dir),
@@ -150,4 +159,10 @@ class App:
             options,
         )
 
-        subprocess.call(command)
+        try:
+            subprocess.call(command)
+        except FileNotFoundError:
+            return "Java executable not found. Check your Java path in Settings."
+        except OSError as e:
+            return f"Failed to launch Minecraft: {e}"
+        return None

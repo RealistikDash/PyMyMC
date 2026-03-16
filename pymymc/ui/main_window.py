@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import platform
 from typing import TYPE_CHECKING
+from typing import Callable
 
 from PySide6.QtCore import QPoint
 from PySide6.QtCore import Qt
@@ -427,6 +428,7 @@ class _DraggableWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self._drag_pos: QPoint | None = None
+        self._on_close: Callable[[], None] | None = None
 
     def mousePressEvent(self, event: object) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -442,6 +444,11 @@ class _DraggableWindow(QWidget):
 
     def mouseReleaseEvent(self, event: object) -> None:
         self._drag_pos = None
+
+    def closeEvent(self, event: object) -> None:
+        if self._on_close is not None:
+            self._on_close()
+        super().closeEvent(event)
 
 
 class _SidebarButton(QPushButton):
@@ -532,14 +539,24 @@ class MainWindow:
         close_btn.raise_()
         close_btn.clicked.connect(self._window.close)
 
-        # Wire sidebar to stack
-        self._btn_group.idClicked.connect(self._stack.setCurrentIndex)
+        # Wire sidebar to stack + auto-save settings on close
+        self._btn_group.idClicked.connect(self._on_page_changed)
+        self._window._on_close = self._on_window_close
         home_btn.setChecked(True)
 
         # Initial data load
         self._home_page.refresh()
 
         log_info("Done!")
+
+    def _on_page_changed(self, index: int) -> None:
+        if self._stack.currentWidget() is self._settings_page:
+            self._settings_page.apply_settings()
+        self._stack.setCurrentIndex(index)
+
+    def _on_window_close(self) -> None:
+        if self._stack.currentWidget() is self._settings_page:
+            self._settings_page.apply_settings()
 
     def _on_config_changed(self) -> None:
         self._home_page.refresh()

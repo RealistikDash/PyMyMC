@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QVBoxLayout
 from PySide6.QtWidgets import QWidget
 
 from pymymc import constants
+from pymymc.ui.dialogues import warning_box
 
 if TYPE_CHECKING:
     from pymymc.app import App
@@ -27,6 +28,8 @@ if TYPE_CHECKING:
 _ICON_DOT = "\u25cf"
 
 _SYSTEM = platform.system()
+
+_XMX_RE = re.compile(r"-Xmx(\d+)([GgMm])")
 
 
 def _make_card(title: str) -> tuple[QFrame, QVBoxLayout]:
@@ -79,6 +82,7 @@ class SettingsPage(QWidget):
         desc.setObjectName("page_desc")
         layout.addWidget(desc)
 
+        self._app._ensure_versions_loaded()
         online = self._app.has_internet
         status_row = QHBoxLayout()
         status_row.setSpacing(6)
@@ -127,8 +131,12 @@ class SettingsPage(QWidget):
         self._ram_spin.setMaximum(64)
         self._ram_spin.setSuffix(" GB")
 
-        xmx_match = re.search(r"-Xmx(\d+)G", config.jvm_args)
-        self._ram_spin.setValue(int(xmx_match.group(1)) if xmx_match else 2)
+        xmx_match = _XMX_RE.search(config.jvm_args)
+        if xmx_match:
+            val, unit = int(xmx_match.group(1)), xmx_match.group(2).upper()
+            self._ram_spin.setValue(val if unit == "G" else max(1, val // 1024))
+        else:
+            self._ram_spin.setValue(2)
 
         ram_row.addWidget(self._ram_spin)
         ram_row.addStretch()
@@ -206,19 +214,13 @@ class SettingsPage(QWidget):
         )
         layout.addWidget(self._forget_me_check)
 
-        # Apply
-        button_row = QHBoxLayout()
-        apply_btn = QPushButton("Apply")
-        apply_btn.clicked.connect(self._apply)
-        button_row.addWidget(apply_btn)
-        button_row.addStretch()
-        layout.addLayout(button_row)
+        layout.addStretch()
 
     def _on_ram_changed(self, value: int) -> None:
         text = self._jvm_args_entry.text()
         new_flag = f"-Xmx{value}G"
-        if re.search(r"-Xmx\d+G", text):
-            text = re.sub(r"-Xmx\d+G", new_flag, text)
+        if _XMX_RE.search(text):
+            text = _XMX_RE.sub(new_flag, text)
         elif text.strip():
             text = new_flag + " " + text
         else:
@@ -245,10 +247,20 @@ class SettingsPage(QWidget):
         if path:
             self._java_path_entry.setText(path)
 
-    def _apply(self) -> None:
+    def apply_settings(self) -> None:
         config = self._app.config
 
         mc_path = Path(self._mc_path_entry.text())
+        if not mc_path.is_dir():
+            warning_box(
+                "Invalid Path", f"Minecraft directory does not exist:\n{mc_path}"
+            )
+            return
+
+        java_path = self._java_path_entry.text()
+        if java_path and not Path(java_path).is_file():
+            warning_box("Invalid Path", f"Java executable not found:\n{java_path}")
+            return
 
         if self._forget_me_check.isChecked():
             config.email = ""
